@@ -1,0 +1,10 @@
+type,title,description,priority
+Regular Case,Customer Service Complaint,Customer reported poor service delivery,High
+Regular Case,Account Issue,User unable to access account,High
+On-Desk Case,Document Review,Internal document needs approval,Medium
+On-Desk Case,Data Entry,Data entry for new client,Medium
+Reliance Case,System Maintenance,Regular system check and updates,Low
+Reliance Case,Database Backup,Scheduled database backup,Low
+Regular Case,Payment Dispute,Customer disputes transaction,High
+On-Desk Case,Report Generation,Monthly report generation,Medium
+Regular Case,Technical Support,Technical assistance needed,Medium

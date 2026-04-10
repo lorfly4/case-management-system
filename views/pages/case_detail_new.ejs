@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Details - Case Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+        <!-- Navbar -->
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                        <i class="fas fa-bars"></i>
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-brand fw-bold ms-3">
+                <i class="fas fa-file-alt"></i> Case Detail
+            </div>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                        <i class="fas fa-user-circle fa-2x"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <div class="dropdown-header">
+                            <strong><%= user %></strong> - <%= role.toUpperCase() %>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="/logout" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <a href="/dashboard" class="brand-link">
+                <i class="fas fa-briefcase brand-image"></i>
+                <span class="brand-text font-weight-light">CMS</span>
+            </a>
+            <div class="sidebar">
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <li class="nav-item">
+                            <a href="/dashboard" class="nav-link">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+                        <li class="nav-item menu-open">
+                            <a href="#" class="nav-link active">
+                                <i class="nav-icon fas fa-copy"></i>
+                                <p>Cases <i class="fas fa-angle-left right"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="/all-cases" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>All Cases</p>
+                                    </a>
+                                </li>
+                                <% if (role === 'admin' || role === 'spv') { %>
+                                <li class="nav-item">
+                                    <a href="/case/new" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Create Case</p>
+                                    </a>
+                                </li>
+                                <% } %>
+                            </ul>
+                        </li>
+                        <% if (role === 'admin' || role === 'spv') { %>
+                        <li class="nav-item">
+                            <a href="/import-cases" class="nav-link">
+                                <i class="nav-icon fas fa-file-upload"></i>
+                                <p>Import Cases</p>
+                            </a>
+                        </li>
+                        <% } %>
+                        <% if (role === 'admin') { %>
+                        <li class="nav-item">
+                            <a href="/users" class="nav-link">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>Users</p>
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Content Header -->
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">Detail Kasus #<%= caseItem.id %></h1>
+                        </div>
+                        <div class="col-sm-6 text-end">
+                            <a href="/all-cases" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <section class="content">
+                <div class="container-fluid">
+                    <!-- White Section for Case Details -->
+                    <div class="card bg-white border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-file-alt me-2 text-primary"></i>Data Detail Kasus
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <% if ((role === 'admin' || role === 'spv') && caseItem.status !== 'Closed') { %>
+                                    <a href="/case/<%= caseItem.id %>/edit" class="btn btn-warning btn-sm text-white">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                    <form method="POST" action="/case/<%= caseItem.id %>/delete" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kasus ini?')">
+                                        <button type="submit" class="btn btn-danger btn-sm text-white">
+                                            <i class="fas fa-trash me-1"></i>Hapus
+                                        </button>
+                                    </form>
+                                <% } %>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <!-- Case Information Grid -->
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-3">
+                        <label class="text-muted small fw-bold text-uppercase mb-1 d-block">ID Kasus</label>
+                        <p class="fs-5 fw-bold mb-0">#<%= caseItem.id %></p>
+                    </div>
+                                <div class="col-md-3">
+                                    <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Tipe Kasus</label>
+                                    <p class="mb-0">
+                                        <span class="badge badge-<%= caseItem.type === 'Regular Case' ? 'primary' : (caseItem.type === 'On-Desk Case' ? 'success' : 'info') %> px-3 py-2">
+                                            <i class="fas fa-tag me-1"></i><%= caseItem.type %>
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Status Saat Ini</label>
+                                    <p class="mb-0">
+                                        <span class="badge badge-<%= caseItem.status === 'Closed' ? 'success' : (caseItem.status === 'In Progress' ? 'warning' : (caseItem.status === 'On Hold' ? 'secondary' : 'danger')) %> px-3 py-2">
+                                            <i class="fas fa-info-circle me-1"></i><%= caseItem.status %>
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Prioritas</label>
+                                    <p class="mb-0">
+                                        <span class="badge badge-<%= caseItem.priority === 'High' ? 'danger' : (caseItem.priority === 'Medium' ? 'warning' : 'success') %> px-3 py-2">
+                                            <i class="fas fa-flag me-1"></i><%= caseItem.priority %>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Judul Kasus</label>
+                                    <h4 class="fw-bold text-dark"><%= caseItem.title %></h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">PIC (Person In Charge)</label>
+                                    <div class="d-flex align-items-center">
+                                        <p class="fs-5 fw-semibold mb-0 me-3">
+                                            <i class="fas fa-user-tie me-2 text-muted"></i>
+                                            <%= caseItem.pic_name || '<span class="text-danger">Belum Ditentukan</span>' %>
+                                        </p>
+                                        <% if (role === 'admin' || role === 'spv') { %>
+                                            <button type="button" class="btn btn-success btn-sm text-white" data-bs-toggle="modal" data-bs-target="#assignPicModal">
+                                                <i class="fas fa-user-plus me-1"></i>Pilih PIC
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Deskripsi Lengkap</label>
+                                <div class="p-3 bg-light rounded-3 border" style="min-height: 150px; white-space: pre-line;">
+                                    <%= caseItem.description || 'Tidak ada deskripsi yang tersedia untuk kasus ini.' %>
+                                </div>
+                            </div>
+
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-0 small">
+                                        <i class="far fa-calendar-alt me-1"></i>Dibuat pada: <%= new Date(caseItem.created_at).toLocaleString('id-ID', {year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'}) %>
+                                    </p>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <% if (role === 'admin' || role === 'spv' || (role === 'user' && caseItem.pic_id === userId)) { %>
+                                        <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                                            <i class="fas fa-sync-alt me-2"></i>Update Status
+                                        </button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <strong>Case Management System &copy; 2026</strong> - Built for Efficiency
+            <div class="float-end d-none d-sm-inline">
+                <b>Version</b> 1.0
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Pilih PIC -->
+    <% if (role === 'admin' || role === 'spv') { %>
+    <div class="modal fade" id="assignPicModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-user-plus me-2"></i>Pilih PIC Kasus
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="assignForm">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="case_id" value="<%= caseItem.id %>">
+                        <div class="mb-3">
+                            <label for="pic_id" class="form-label fw-bold">Pilih Pengguna:</label>
+                            <select id="pic_id" name="pic_id" class="form-select form-select-lg" required>
+                                <option value="">- Pilih Pengguna -</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-3">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                            <i class="fas fa-check me-2"></i>Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Modal Update Status -->
+    <% if (role === 'admin' || role === 'spv' || (role === 'user' && caseItem.pic_id === userId)) { %>
+    <div class="modal fade" id="updateStatusModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white py-3">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-sync-alt me-2"></i>Update Status Kasus
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="statusForm">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="case_id" value="<%= caseItem.id %>">
+                        <div class="mb-3">
+                            <label for="status" class="form-label fw-bold">Status Baru:</label>
+                            <select id="status" name="status" class="form-select form-select-lg" required>
+                                <option value="Unassigned" <%= caseItem.status === 'Unassigned' ? 'selected' : '' %>>Unassigned</option>
+                                <option value="In Progress" <%= caseItem.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+                                <option value="On Hold" <%= caseItem.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
+                                <option value="Closed" <%= caseItem.status === 'Closed' ? 'selected' : '' %>>Closed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-3">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success px-4 shadow-sm">
+                            <i class="fas fa-save me-2"></i>Update Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
+    <script>
+        $(function() {
+            // Load users for PIC assignment dropdown
+            <% if (role === 'admin' || role === 'spv') { %>
+            $.ajax({
+                url: '/api/users-with-load',
+                method: 'GET',
+                success: function(data) {
+                    data.forEach(user => {
+                        const selected = '<%= caseItem.pic_id %>' == user.id ? 'selected' : '';
+                        $('#pic_id').append(`<option value="${user.id}" ${selected}>${user.username} (${user.load_count} kasus aktif)</option>`);
+                    });
+                }
+            });
+            <% } %>
+
+            // Handle Assign PIC form submission
+            $('#assignForm').on('submit', function(e) {
+                e.preventDefault();
+                const btn = $(this).find('button[type="submit"]');
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Menyimpan...');
+                
+                $.ajax({
+                    url: '/assign-case',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + (response.error || 'Gagal menentukan PIC'));
+                            btn.prop('disabled', false).html('<i class="fas fa-check me-2"></i>Simpan Perubahan');
+                        }
+                    }
+                });
+            });
+
+            // Handle Update Status form submission
+            $('#statusForm').on('submit', function(e) {
+                e.preventDefault();
+                const btn = $(this).find('button[type="submit"]');
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Memproses...');
+                
+                $.ajax({
+                    url: '/update-case-status',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + (response.error || 'Gagal memperbarui status'));
+                            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Update Sekarang');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Cases - Case Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+        <!-- Navbar -->
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                        <i class="fas fa-bars"></i>
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-brand fw-bold ms-3">
+                <i class="fas fa-briefcase"></i> Import Cases
+            </div>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                        <i class="fas fa-user-circle fa-2x"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <div class="dropdown-header">
+                            <strong><%= user %></strong> - <%= role.toUpperCase() %>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="/logout" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <a href="/dashboard" class="brand-link">
+                <i class="fas fa-briefcase brand-image"></i>
+                <span class="brand-text font-weight-light">CMS</span>
+            </a>
+            <div class="sidebar">
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <li class="nav-item">
+                            <a href="/dashboard" class="nav-link">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-copy"></i>
+                                <p>Cases <i class="fas fa-angle-left right"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="/all-cases" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>All Cases</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/case/new" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Create Case</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/import-cases" class="nav-link active">
+                                <i class="nav-icon fas fa-file-upload"></i>
+                                <p>Import Cases</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/users" class="nav-link">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>Users</p>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Content Header -->
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">Import Cases from CSV</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <section class="content">
+                <div class="container-fluid">
+                    <!-- Alert Messages -->
+                    <% if (typeof message !== 'undefined' && message) { %>
+                    <div class="alert alert-<%= message.includes('Error') || message.includes('error') ? 'danger' : 'success' %> alert-dismissible fade show" role="alert">
+                        <i class="fas fa-<%= message.includes('Error') || message.includes('error') ? 'exclamation-circle' : 'check-circle' %> me-2"></i><%= message %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+
+                    <% if (typeof importResult !== 'undefined' && importResult) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <h4 class="alert-heading">
+                            <i class="fas fa-check-circle me-2"></i>Import Completed!
+                        </h4>
+                        <p>
+                            <strong>Total Records:</strong> <%= importResult.total %><br>
+                            <strong>Successfully Imported:</strong> <span class="text-success"><%= importResult.success %></span><br>
+                            <% if (importResult.failed > 0) { %>
+                                <strong>Failed:</strong> <span class="text-danger"><%= importResult.failed %></span>
+                            <% } %>
+                        </p>
+                        <% if (importResult.errors && importResult.errors.length > 0) { %>
+                        <hr>
+                        <strong>Errors:</strong>
+                        <ul class="mb-0">
+                            <% importResult.errors.forEach(err => { %>
+                            <li><%= err %></li>
+                            <% }); %>
+                        </ul>
+                        <% } %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-upload me-2"></i>Upload CSV File
+                                    </h5>
+                                </div>
+                                <form method="POST" action="/import-cases" enctype="multipart/form-data">
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label for="file">Select CSV File <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                                                <span class="input-group-text"><i class="fas fa-file-csv"></i></span>
+                                            </div>
+                                            <small class="text-muted">Maximum file size: 5MB</small>
+                                        </div>
+
+                                        <div class="alert alert-info">
+                                            <strong>CSV Format Required:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li><strong>type</strong> (Regular Case, On-Desk Case, or Reliance Case)</li>
+                                                <li><strong>title</strong> (case title)</li>
+                                                <li><strong>description</strong> (optional)</li>
+                                                <li><strong>priority</strong> (Low, Medium, High)</li>
+                                                <li><strong>status</strong> (Unassigned, In Progress, On Hold, Closed)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-footer bg-light">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-upload me-2"></i>Import Cases
+                                        </button>
+                                        <a href="/all-cases" class="btn btn-secondary ms-2">
+                                            <i class="fas fa-times me-2"></i>Cancel
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Sample CSV Download -->
+                            <div class="card mt-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Download Sample CSV</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Click the button below to download a sample CSV file with the correct format:</p>
+                                    <a href="/sample_cases.csv" class="btn btn-info" download>
+                                        <i class="fas fa-download me-2"></i>Download Sample CSV
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions Sidebar -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Instructions
+                                    </h5>
+                                </div>
+                                <div class="card-body text-sm">
+                                    <h6>Step-by-step Guide:</h6>
+                                    <ol>
+                                        <li>Prepare your CSV file with required columns</li>
+                                        <li>Ensure data is in correct format</li>
+                                        <li>Click "Browse" to select CSV file</li>
+                                        <li>Click "Import Cases" button</li>
+                                        <li>Check import results</li>
+                                    </ol>
+
+                                    <hr>
+
+                                    <h6>Important Notes:</h6>
+                                    <ul>
+                                        <li>ID Kasus akan dibuat otomatis (Auto-Increment)</li>
+                                        <li>Type must match exactly (case sensitive)</li>
+                                        <li>Priority: Low, Medium, High</li>
+                                        <li>Status: Unassigned, In Progress, On Hold, Closed</li>
+                                        <li>Invalid rows will be skipped</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="card mt-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">CSV Columns</h5>
+                                </div>
+                                <div class="card-body text-sm">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td><strong>type</strong></td>
+                                            <td><span class="badge bg-danger">Required</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>title</strong></td>
+                                            <td><span class="badge bg-danger">Required</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>description</strong></td>
+                                            <td><span class="badge bg-warning">Optional</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>priority</strong></td>
+                                            <td><span class="badge bg-danger">Required</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>status</strong></td>
+                                            <td><span class="badge bg-danger">Required</span></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <strong>Case Management System &copy; 2026</strong> - Built for Efficiency
+            <div class="float-end d-none d-sm-inline">
+                <b>Version</b> 1.0
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
+</body>
+</html>

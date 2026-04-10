@@ -1,0 +1,114 @@
+require('dotenv').config();
+const express = require('express');
+const mysql = require('mysql2');
+const session = require('express-session');
+const path = require('path');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+// --- DATABASE CONNECTION ---
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'case_management'
+});
+
+db.connect((err) => {
+    if (err) throw err;
+    console.log('MySQL Connected...');
+});
+
+// --- MIDDLEWARE ---
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+    secret: 'Akugataumales1',
+    resave: false,
+    saveUninitialized: true
+}));
+
+// Global Middleware untuk Role di View (EJS)
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    res.locals.role = req.session.role || null;
+    next();
+});
+
+// --- ROUTES ---
+
+/**
+ * DASHBOARD ROUTE
+ * Menampilkan Summary Kategori & Chart Top 5 PIC
+ */
+app.get('/dashboard', (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+
+    // Query 1: Count per Category
+    const queryCategory = `
+        SELECT type, COUNT(*) as count 
+        FROM cases 
+        GROUP BY type`;
+
+    // Query 2: Top 5 PIC Load (Status In Progress)
+    const queryTopPIC = `
+        SELECT u.username, COUNT(c.id) as load_count 
+        FROM users u 
+        JOIN cases c ON u.id = c.pic_id 
+        WHERE c.status = 'In Progress' 
+        GROUP BY u.id 
+        ORDER BY load_count DESC 
+        LIMIT 5`;
+
+    db.query(queryCategory, (err, catResults) => {
+        db.query(queryTopPIC, (err, picResults) => {
+            res.render('pages/dashboard', {
+                categories: catResults,
+                topPIC: picResults
+            });
+        });
+    });
+});
+
+/**
+ * ALL CASES ROUTE (Global View)
+ */
+app.get('/all-cases', (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+
+    let query = `
+        SELECT c.*, u.username as pic_name 
+        FROM cases c 
+        LEFT JOIN users u ON c.pic_id = u.id`;
+    
+    // Logic User: Hanya lihat case miliknya
+    if (req.session.role === 'user') {
+        query += " WHERE c.pic_id = " + db.escape(req.session.user_id);
+    }
+
+    db.query(query, (err, results) => {
+        res.render('pages/all_cases', { cases: results });
+    });
+});
+
+/**
+ * LOGIC ASSIGN PIC (Hanya Admin & SPV)
+ */
+app.post('/assign-case', (req, res) => {
+    const { case_id, pic_id } = req.body;
+    
+    if (req.session.role === 'user') return res.status(403).send('Unauthorized');
+
+    const sql = "UPDATE cases SET pic_id = ?, status = 'In Progress' WHERE id = ?";
+    db.query(sql, [pic_id, case_id], (err, result) => {
+        if (err) throw err;
+        res.redirect('back'); // Kembali ke halaman sebelumnya
+    });
+});
+
+// Port Setup
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
