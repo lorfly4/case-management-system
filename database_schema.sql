@@ -37,9 +37,21 @@ CREATE TABLE IF NOT EXISTS case_activities (
   FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS case_documents (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  case_id INT NOT NULL,
+  filename VARCHAR(255) NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  uploaded_by INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
+  FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- Indexes untuk performance
 CREATE INDEX idx_cases_type ON cases(type);
 CREATE INDEX idx_cases_status ON cases(status);
 CREATE INDEX idx_cases_pic_id ON cases(pic_id);
 CREATE INDEX idx_cases_created_at ON cases(created_at);
 CREATE INDEX idx_case_activities_case_id ON case_activities(case_id);
+CREATE INDEX idx_case_documents_case_id ON case_documents(case_id);

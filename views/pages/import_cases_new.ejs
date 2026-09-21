@@ -152,16 +152,16 @@
                                 <form method="POST" action="/import-cases" enctype="multipart/form-data">
                                     <div class="card-body">
                                         <div class="form-group mb-3">
-                                            <label for="file">Select CSV File <span class="text-danger">*</span></label>
+                                            <label for="file">Select CSV/Excel File <span class="text-danger">*</span></label>
                                             <div class="input-group">
-                                                <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                                                <input type="file" class="form-control" id="file" name="file" accept=".csv,.xls,.xlsx" required>
                                                 <span class="input-group-text"><i class="fas fa-file-csv"></i></span>
                                             </div>
                                             <small class="text-muted">Maximum file size: 5MB</small>
                                         </div>
 
                                         <div class="alert alert-info">
-                                            <strong>CSV Format Required:</strong>
+                                            <strong>CSV/Excel Format Required:</strong>
                                             <ul class="mb-0 mt-2">
                                                 <li><strong>type</strong> (Regular Case, On-Desk Case, or Reliance Case)</li>
                                                 <li><strong>title</strong> (case title)</li>

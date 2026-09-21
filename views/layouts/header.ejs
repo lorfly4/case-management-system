@@ -109,19 +109,15 @@
                                             <p>All Cases</p>
                                         </a>
                                     </li>
-                                    <% if (role === 'admin' || role === 'spv') { %>
                                     <li class="nav-item">
                                         <a href="/case/new" class="nav-link <%= currentPath === '/case/new' ? 'active' : '' %>">
                                             <i class="far fa-circle nav-icon"></i>
                                             <p>Create Case</p>
                                         </a>
                                     </li>
-                                    <% } %>
                                 </ul>
                             </li>
 
-                            <!-- Management Menu (Admin/SPV only) -->
-                            <% if (role === 'admin' || role === 'spv') { %>
                             <li class="nav-header">MANAGEMENT</li>
                             <li class="nav-item">
                                 <a href="/import-cases" class="nav-link <%= currentPath === '/import-cases' ? 'active' : '' %>">
@@ -129,7 +125,6 @@
                                     <p>Import Cases</p>
                                 </a>
                             </li>
-                            <% } %>
 
                             <!-- Users Menu (Admin only) -->
                             <% if (role === 'admin') { %>

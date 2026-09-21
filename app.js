@@ -7,9 +7,14 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const csv = require('csv-parser');
+const xlsx = require('xlsx');
 const fs = require('fs');
+const { canCreateCase, canImportCases, canUploadCaseDocument } = require('./lib/case_permissions');
 
 const app = express();
+
+fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+fs.mkdirSync(path.join(__dirname, 'uploads', 'case-documents'), { recursive: true });
 
 // --- DATABASE CONNECTION ---
 const db = mysql.createConnection({
@@ -19,12 +24,37 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
+const ensureCaseDocumentsTable = () => {
+    const query = `
+        CREATE TABLE IF NOT EXISTS case_documents (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            case_id INT NOT NULL,
+            filename VARCHAR(255) NOT NULL,
+            original_name VARCHAR(255) NOT NULL,
+            uploaded_by INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
+            FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+        )
+    `;
+
+    return new Promise((resolve, reject) => {
+        db.query(query, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+};
+
 db.connect((err) => {
     if (err) {
         console.error('Database connection failed:', err);
         setTimeout(() => db.connect(), 3000);
     } else {
         console.log('MySQL Connected...');
+        ensureCaseDocumentsTable()
+            .then(() => console.log('Table case_documents ready'))
+            .catch((migrationErr) => console.error('Failed to create case_documents table:', migrationErr.message));
     }
 });
 
@@ -32,6 +62,7 @@ db.connect((err) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -202,17 +233,11 @@ app.get('/dashboard', checkAuth, (req, res) => {
  * ALL CASES (Global View)
  */
 app.get('/all-cases', checkAuth, (req, res) => {
-    let query = `
+    const query = `
         SELECT c.*, u.username as pic_name, u.id as pic_id_check
         FROM cases c 
-        LEFT JOIN users u ON c.pic_id = u.id`;
-    
-    // Logic: User hanya lihat case miliknya
-    if (req.session.role === 'user') {
-        query += " WHERE c.pic_id = " + db.escape(req.session.user_id);
-    }
-
-    query += " ORDER BY c.id DESC";
+        LEFT JOIN users u ON c.pic_id = u.id
+        ORDER BY c.id DESC`;
 
     db.query(query, (err, results) => {
         if (err) throw err;
@@ -230,18 +255,12 @@ app.get('/all-cases', checkAuth, (req, res) => {
 app.get('/cases/:type', checkAuth, (req, res) => {
     const { type } = req.params;
     
-    let query = `
+    const query = `
         SELECT c.*, u.username as pic_name 
         FROM cases c 
         LEFT JOIN users u ON c.pic_id = u.id
-        WHERE c.type = ?`;
-    
-    // Logic: User hanya lihat case miliknya
-    if (req.session.role === 'user') {
-        query += " AND c.pic_id = " + db.escape(req.session.user_id);
-    }
-
-    query += " ORDER BY c.id DESC";
+        WHERE c.type = ?
+        ORDER BY c.id DESC`;
 
     db.query(query, [type], (err, results) => {
         if (err) throw err;
@@ -257,7 +276,11 @@ app.get('/cases/:type', checkAuth, (req, res) => {
 /**
  * CREATE NEW CASE (Admin & SPV) - HARUS SEBELUM /case/:id
  */
-app.get('/case/new', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
+app.get('/case/new', checkAuth, (req, res) => {
+    if (!canCreateCase(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
     res.render('pages/case_form_new', { 
         caseItem: null, 
         caseTypes: ['Regular Case', 'On-Desk Case', 'Reliance Case'],
@@ -266,7 +289,11 @@ app.get('/case/new', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
     });
 });
 
-app.post('/case/new', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
+app.post('/case/new', checkAuth, (req, res) => {
+    if (!canCreateCase(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
     const { type, title, description, priority } = req.body;
     
     const sql = "INSERT INTO cases SET ?";
@@ -293,7 +320,11 @@ app.post('/case/new', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
 /**
  * EDIT CASE
  */
-app.get('/case/:id/edit', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
+app.get('/case/:id/edit', checkAuth, (req, res) => {
+    if (!canCreateCase(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
     const query = 'SELECT * FROM cases WHERE id = ?';
     db.query(query, [req.params.id], (err, results) => {
         if (err) throw err;
@@ -307,7 +338,11 @@ app.get('/case/:id/edit', checkAuth, checkRole(['admin', 'spv']), (req, res) => 
     });
 });
 
-app.post('/case/:id/edit', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
+app.post('/case/:id/edit', checkAuth, (req, res) => {
+    if (!canCreateCase(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
     const { title, description, priority, status } = req.body;
     
     const sql = "UPDATE cases SET title = ?, description = ?, priority = ?, status = ? WHERE id = ?";
@@ -320,7 +355,11 @@ app.post('/case/:id/edit', checkAuth, checkRole(['admin', 'spv']), (req, res) =>
 /**
  * DELETE CASE
  */
-app.post('/case/:id/delete', checkAuth, checkRole(['admin', 'spv']), (req, res) => {
+app.post('/case/:id/delete', checkAuth, (req, res) => {
+    if (!['admin', 'spv'].includes(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
     const sql = "DELETE FROM cases WHERE id = ?";
     db.query(sql, [req.params.id], (err, result) => {
         if (err) throw err;
@@ -343,17 +382,29 @@ app.get('/case/:id', checkAuth, (req, res) => {
         if (results.length === 0) return res.status(404).send('Case not found');
         
         const caseData = results[0];
-        
-        // Check access: user hanya bisa lihat case mereka
-        if (req.session.role === 'user' && caseData.pic_id !== req.session.user_id) {
-            return res.status(403).send('Unauthorized');
-        }
+        const documentQuery = 'SELECT * FROM case_documents WHERE case_id = ? ORDER BY created_at DESC';
 
-        res.render('pages/case_detail_new', { 
-            caseItem: caseData, 
-            user: req.session.user,
-            role: req.session.role,
-            userId: req.session.user_id
+        db.query(documentQuery, [req.params.id], (docErr, documentResults) => {
+            if (docErr) {
+                if (docErr.code === 'ER_NO_SUCH_TABLE') {
+                    return res.render('pages/case_detail_new', {
+                        caseItem: caseData,
+                        documents: [],
+                        user: req.session.user,
+                        role: req.session.role,
+                        userId: req.session.user_id
+                    });
+                }
+                throw docErr;
+            }
+
+            res.render('pages/case_detail_new', { 
+                caseItem: caseData, 
+                documents: documentResults,
+                user: req.session.user,
+                role: req.session.role,
+                userId: req.session.user_id
+            });
         });
     });
 });
@@ -549,83 +600,202 @@ app.post('/user/:id/delete', checkAuth, checkRole(['admin']), (req, res) => {
     });
 });
 
-// --- CSV IMPORT ROUTE ---
+// --- FILE UPLOADS ---
 
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, 'uploads'),
+const caseDocumentStorage = multer.diskStorage({
+    destination: path.join(__dirname, 'uploads', 'case-documents'),
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`);
     }
 });
 
-const upload = multer({ 
-    storage: storage,
+const caseDocumentUpload = multer({
+    storage: caseDocumentStorage,
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'text/csv') {
+        const isPdf = file.mimetype === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf');
+        if (isPdf) {
             cb(null, true);
         } else {
-            cb(new Error('Only CSV files allowed'));
+            cb(new Error('Only PDF files allowed for case document upload'));
         }
     }
 });
 
-app.get('/import-cases', checkAuth, checkRole(['admin']), (req, res) => {
+const importStorage = multer.diskStorage({
+    destination: path.join(__dirname, 'uploads'),
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`);
+    }
+});
+
+const importUpload = multer({
+    storage: importStorage,
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const allowedTypes = ['.csv', '.xls', '.xlsx'];
+        const mimeTypes = [
+            'text/csv',
+            'application/csv',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+
+        if (allowedTypes.includes(ext) || mimeTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only CSV, XLS, or XLSX files are allowed'));
+        }
+    }
+});
+
+const parseImportRows = (filePath) => {
+    return new Promise((resolve, reject) => {
+        const ext = path.extname(filePath).toLowerCase();
+
+        if (ext === '.csv') {
+            const rows = [];
+            fs.createReadStream(filePath)
+                .pipe(csv())
+                .on('data', (row) => rows.push(row))
+                .on('end', () => resolve(rows))
+                .on('error', reject);
+            return;
+        }
+
+        try {
+            const workbook = xlsx.readFile(filePath);
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const rows = xlsx.utils.sheet_to_json(worksheet, { defval: '', raw: false });
+            resolve(rows);
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+// --- CSV / EXCEL IMPORT ROUTE ---
+
+app.get('/import-cases', checkAuth, (req, res) => {
+    if (!canImportCases(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
     res.render('pages/import_cases_new', {
         user: req.session.user,
         role: req.session.role
     });
 });
 
-app.post('/import-cases', checkAuth, checkRole(['admin']), upload.single('file'), (req, res) => {
-    const filePath = req.file.path;
-    const results = [];
-    let successCount = 0;
-    let errorCount = 0;
+app.post('/import-cases', checkAuth, (req, res) => {
+    if (!canImportCases(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
 
-    fs.createReadStream(filePath)
-        .pipe(csv())
-        .on('data', (data) => {
-            results.push(data);
-        })
-        .on('end', () => {
-            // Insert all data
-            const sql = "INSERT INTO cases SET ?";
-            
-            results.forEach((row) => {
-                db.query(sql, {
-                    type: row.type,
-                    title: row.title,
-                    description: row.description || '',
-                    priority: row.priority || 'Medium',
-                    status: 'Unassigned'
-                }, (err) => {
-                    if (err) {
-                        errorCount++;
-                        console.error(err);
-                    } else {
-                        successCount++;
-                    }
+    importUpload.single('file')(req, res, async (err) => {
+        if (err) {
+            return res.render('pages/import_cases_new', {
+                message: 'Error: ' + err.message,
+                user: req.session.user,
+                role: req.session.role
+            });
+        }
+
+        if (!req.file) {
+            return res.render('pages/import_cases_new', {
+                message: 'Please select a CSV or Excel file to import.',
+                user: req.session.user,
+                role: req.session.role
+            });
+        }
+
+        const filePath = req.file.path;
+        let rows = [];
+        let successCount = 0;
+        let errorCount = 0;
+
+        try {
+            rows = await parseImportRows(filePath);
+
+            const sql = 'INSERT INTO cases (type, title, description, priority, status) VALUES (?, ?, ?, ?, ?)';
+
+            for (const row of rows) {
+                const type = (row.type || row.Type || '').toString().trim();
+                const title = (row.title || row.Title || '').toString().trim();
+                const description = (row.description || row.Description || '').toString().trim();
+                const priority = (row.priority || row.Priority || 'Medium').toString().trim();
+                const status = (row.status || row.Status || 'Unassigned').toString().trim();
+
+                if (!type || !title) {
+                    errorCount++;
+                    continue;
+                }
+
+                const validType = ['Regular Case', 'On-Desk Case', 'Reliance Case'].includes(type);
+                const validPriority = ['Low', 'Medium', 'High'].includes(priority);
+                const validStatus = ['Unassigned', 'In Progress', 'On Hold', 'Closed'].includes(status);
+
+                if (!validType || !validPriority || !validStatus) {
+                    errorCount++;
+                    continue;
+                }
+
+                const insertResult = await new Promise((resolve, reject) => {
+                    db.query(sql, [type, title, description || '', priority, status], (err, result) => {
+                        if (err) reject(err);
+                        else resolve(result);
+                    });
                 });
-            });
 
-            // Clean up file
-            fs.unlinkSync(filePath);
-            
-            res.render('pages/import_cases_new', { 
+                if (insertResult) {
+                    successCount++;
+                }
+            }
+
+            res.render('pages/import_cases_new', {
                 message: `Import complete! Success: ${successCount}, Failed: ${errorCount}`,
-                importResult: { total: results.length, success: successCount, failed: errorCount },
+                importResult: { total: rows.length, success: successCount, failed: errorCount },
                 user: req.session.user,
                 role: req.session.role
             });
-        })
-        .on('error', (err) => {
-            fs.unlinkSync(filePath);
-            res.render('pages/import_cases_new', { 
-                message: 'Error reading CSV file: ' + err.message,
+        } catch (err) {
+            res.render('pages/import_cases_new', {
+                message: 'Error reading CSV/Excel file: ' + err.message,
                 user: req.session.user,
                 role: req.session.role
             });
+        } finally {
+            if (req.file && fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+    });
+});
+
+app.post('/case/:id/upload-document', checkAuth, (req, res) => {
+    if (!canUploadCaseDocument(req.session.role)) {
+        return res.status(403).send('Unauthorized Access');
+    }
+
+    caseDocumentUpload.single('document')(req, res, (err) => {
+        if (err) {
+            return res.status(400).send('Error uploading PDF: ' + err.message);
+        }
+
+        if (!req.file) {
+            return res.status(400).send('No PDF file uploaded');
+        }
+
+        const sql = 'INSERT INTO case_documents (case_id, filename, original_name, uploaded_by) VALUES (?, ?, ?, ?)';
+        db.query(sql, [req.params.id, req.file.filename, req.file.originalname, req.session.user_id], (uploadErr) => {
+            if (uploadErr) {
+                fs.unlinkSync(req.file.path);
+                return res.status(500).send('Failed to save document: ' + uploadErr.message);
+            }
+
+            res.redirect(`/case/${req.params.id}`);
         });
+    });
 });
 
 // --- ROOT ROUTE ---

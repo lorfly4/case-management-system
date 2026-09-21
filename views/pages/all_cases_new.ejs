@@ -79,14 +79,12 @@
                                 <% } %>
                             </ul>
                         </li>
-                        <% if (role === 'admin' || role === 'spv') { %>
                         <li class="nav-item">
                             <a href="/import-cases" class="nav-link">
                                 <i class="nav-icon fas fa-file-upload"></i>
                                 <p>Import Cases</p>
                             </a>
                         </li>
-                        <% } %>
                         <% if (role === 'admin') { %>
                         <li class="nav-item">
                             <a href="/users" class="nav-link">
@@ -110,11 +108,12 @@
                             <h1 class="m-0">All Cases</h1>
                         </div>
                         <div class="col-sm-6 text-end">
-                            <% if (role === 'admin' || role === 'spv') { %>
                             <a href="/case/new" class="btn btn-primary btn-sm">
                                 <i class="fas fa-plus me-2"></i>Create Case
                             </a>
-                            <% } %>
+                            <a href="/import-cases" class="btn btn-success btn-sm ms-2">
+                                <i class="fas fa-file-excel me-2"></i>Import Excel
+                            </a>
                         </div>
                     </div>
                 </div>

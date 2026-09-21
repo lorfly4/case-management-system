@@ -68,24 +68,20 @@
                                         <p>All Cases</p>
                                     </a>
                                 </li>
-                                <% if (role === 'admin' || role === 'spv') { %>
                                 <li class="nav-item">
                                     <a href="/case/new" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Create Case</p>
                                     </a>
                                 </li>
-                                <% } %>
                             </ul>
                         </li>
-                        <% if (role === 'admin' || role === 'spv') { %>
                         <li class="nav-item">
                             <a href="/import-cases" class="nav-link">
                                 <i class="nav-icon fas fa-file-upload"></i>
                                 <p>Import Cases</p>
                             </a>
                         </li>
-                        <% } %>
                         <% if (role === 'admin') { %>
                         <li class="nav-item">
                             <a href="/users" class="nav-link">
