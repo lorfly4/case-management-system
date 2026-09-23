@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oneklinik.com/schemas/ai-claim-result/v0.1.json",
+  "title": "OneKlinik AI Claim Assessment Result",
+  "description": "Payload hasil pemrosesan AI OneKlinik yang dikembalikan ke sistem TPA. Bersifat rekomendasi, bukan keputusan. Payload ini sekaligus menjadi catatan audit, karena OneKlinik tidak menyimpan data setelah pemrosesan selesai.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "processing_id",
+    "request_ref",
+    "engine",
+    "documents",
+    "policy_evaluation",
+    "assessment",
+    "audit",
+    "retention"
+  ],
+  "additionalProperties": false,
+
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1",
+      "description": "Versi skema. Naik kalau ada perubahan yang memutus kompatibilitas."
+    },
+
+    "processing_id": {
+      "type": "string",
+      "description": "ID pemrosesan yang dibuat OneKlinik. Unik per permintaan. Tidak mengandung data pribadi.",
+      "examples": ["OK-20260922-000148"]
+    },
+
+    "request_ref": {
+      "type": "object",
+      "description": "Pengait ke sistem TPA. Nilai-nilai ini DIKEMBALIKAN APA ADANYA dari payload masuk. OneKlinik tidak membuat, mengubah, atau menormalkan identifier milik TPA.",
+      "required": ["tpa_claim_id"],
+      "additionalProperties": true,
+      "properties": {
+        "tpa_claim_id":   { "type": "string", "description": "Nomor case/klaim di CMS TPA" },
+        "tpa_batch_id":   { "type": "string", "description": "ID batch bila dikirim per kumpulan" },
+        "policy_id":      { "type": "string" },
+        "member_id":      { "type": "string" },
+        "product_code":   { "type": "string" },
+        "received_at":    { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "line_of_business": {
+      "type": "string",
+      "enum": ["health", "life", "general"],
+      "description": "Mengikuti master T&C yang dipakai. health dan life memakai rule book terpisah."
+    },
+
+    "engine": {
+      "type": "object",
+      "required": ["provider", "engine_version", "ruleset_version"],
+      "additionalProperties": false,
+      "properties": {
+        "provider":        { "type": "string", "const": "OneKlinik" },
+        "engine_version":  { "type": "string", "examples": ["1.4.0"] },
+        "ruleset_version": {
+          "type": "string",
+          "description": "Versi policy rule book yang dipakai saat evaluasi. Wajib, karena aturan bisa berubah dan hasil lama harus tetap bisa dijelaskan.",
+          "examples": ["TC-HEALTH-v1.0"]
+        },
+        "processing_region": {
+          "type": "string",
+          "description": "Wilayah pemrosesan data.",
+          "examples": ["asia-southeast2 (Jakarta)"]
+        }
+      }
+    },
+
+    "documents": {
+      "type": "array",
+      "description": "Hasil document intelligence per berkas. Menjadi jejak dari mana setiap nilai diambil.",
+      "items": {
+        "type": "object",
+        "required": ["document_id", "document_type", "pages", "extraction_quality"],
+        "additionalProperties": false,
+        "properties": {
+          "document_id":   { "type": "string", "description": "Nama atau ID berkas sesuai kiriman TPA" },
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "claim_form", "invoice", "receipt", "medical_resume", "lab_result",
+              "prescription", "referral_letter", "discharge_summary",
+              "death_certificate", "police_report", "id_document", "policy_document",
+              "other", "unidentified"
+            ]
+          },
+          "pages":  { "type": "integer", "minimum": 0 },
+          "extraction_quality": {
+            "type": "object",
+            "required": ["score", "legible"],
+            "additionalProperties": false,
+            "properties": {
+              "score":   { "type": "number", "minimum": 0, "maximum": 1 },
+              "legible": { "type": "boolean" },
+              "issues":  {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["blurry", "cropped", "handwritten", "rotated", "partial_scan", "low_resolution", "password_protected", "duplicate_of_other_document"]
+                }
+              }
+            }
+          },
+          "fields": {
+            "type": "array",
+            "descriptionstatus": "Nilai yang berhasil dibaca, masing-masing dengan lokasi asalnya.",
+            "items": {
+              "type": "object",
+              "required": ["name", "value", "confidence"],
+              "additionalProperties": false,
+              "properties": {
+                "name":       { "type": "string", "examples": ["invoice_total", "admission_date", "diagnosis_text", "icd10_code"] },
+                "value":      { "type": ["string", "number", "boolean", "null"] },
+                "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+                "source": {
+                  "type": "object",
+                  "description": "Lokasi nilai di dalam berkas, untuk penelusuran manual.",
+                  "additionalProperties": false,
+                  "properties": {
+                    "page": { "type": "integer", "minimum": 1 },
+                    "bbox": {
+                      "type": "array",
+                      "description": "[x, y, width, height] relatif 0..1 terhadap ukuran halaman.",
+                      "items": { "type": "number" },
+                      "minItems": 4, "maxItems": 4
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "policy_evaluation": {
+      "type": "object",
+      "description": "Hasil pencocokan terhadap T&C polis. Satu baris per aturan yang dievaluasi.",
+      "required": ["rules"],
+      "additionalProperties": false,
+      "properties": {
+        "benefit_code": {
+          "type": "string",
+          "description": "Kode manfaat sesuai master T&C.",
+          "examples": ["IP-001", "DB-001", "CI-001", "TPD-001"]
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rule_id", "description", "verdict", "source_clause"],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id":     { "type": "string", "examples": ["HEALTH-WAIT-004", "LIFE-EXCL-011"] },
+              "description": { "type": "string", "description": "Kalimat singkat aturan dalam bahasa manusia." },
+              "verdict": {
+                "type": "string",
+                "enum": ["pass", "fail", "not_applicable", "indeterminate"],
+                "description": "indeterminate dipakai bila data tidak cukup atau wording ambigu. Ini yang memicu human review."
+              },
+              "source_clause": {
+                "type": "object",
+                "description": "Kutipan pasal yang menjadi dasar. Wajib, sesuai prinsip rule book: setiap keputusan menyimpan source clause.",
+                "required": ["reference"],
+                "additionalProperties": false,
+                "properties": {
+                  "reference": { "type": "string", "examples": ["TC Health Pasal 12 ayat 2"] },
+                  "text":      { "type": "string", "description": "Kutipan teks pasal." }
+                }
+              },
+              "evidence": {
+                "type": "array",
+                "description": "Penunjuk ke berkas dan halaman yang mendukung verdict ini.",
+                "items": {
+                  "type": "object",
+                  "required": ["document_id"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "document_id": { "type": "string" },
+                    "page":        { "type": "integer", "minimum": 1 },
+                    "note":        { "type": "string" }
+                  }
+                }
+              },
+              "evaluated_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+
+    "assessment": {
+      "type": "object",
+      "description": "Rekomendasi engine. BUKAN keputusan. Keputusan final tetap di kewenangan analis dan Penanggung.",
+      "required": ["recommendation", "confidence", "reasons"],
+      "additionalProperties": false,
+      "properties": {
+        "recommendation": {
+          "type": "string",
+          "enum": ["approve", "reject", "refer_investigation", "needs_human_review"],
+          "description": "approve, reject, dan refer_investigation memetakan ke tiga cabang di alur TPA. needs_human_review adalah status keempat untuk kasus yang buktinya tidak cukup, sesuai prinsip rule book dan ketentuan LPS bahwa tidak boleh ada auto-approve."
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reasons": {
+          "type": "array",
+          "description": "Alasan ringkas, mengacu ke rule_id di policy_evaluation.",
+          "items": {
+            "type": "object",
+            "required": ["rule_id", "summary"],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id": { "type": "string" },
+              "summary": { "type": "string" }
+            }
+          }
+        },
+        "amount": {
+          "type": "object",
+          "description": "Perhitungan nilai. Diisi hanya bila recommendation = approve.",
+          "additionalProperties": false,
+          "properties": {
+            "currency":        { "type": "string", "const": "IDR" },
+            "billed":          { "type": "number", "minimum": 0 },
+            "not_covered":     { "type": "number", "minimum": 0 },
+            "deductible":      { "type": "number", "minimum": 0 },
+            "copay":           { "type": "number", "minimum": 0 },
+            "payable":         { "type": "number", "minimum": 0 },
+            "calculation_note": { "type": "string" }
+          }
+        },
+        "human_review": {
+          "type": "object",
+          "description": "Wajib diisi bila recommendation = needs_human_review, dan boleh diisi sebagai catatan pada rekomendasi lain.",
+          "required": ["required"],
+          "additionalProperties": false,
+          "properties": {
+            "required": { "type": "boolean" },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "incomplete_data", "conflicting_documents", "ambiguous_wording",
+                  "illegible_document", "amount_above_threshold", "benefit_not_in_schedule",
+                  "policy_status_unclear", "event_date_unclear", "low_extraction_confidence"
+                ]
+              }
+            },
+            "notes": { "type": "string" },
+            "missing_items": {
+              "type": "array",
+              "description": "Daftar dokumen atau data yang kurang, agar TPA bisa langsung meminta ke klien.",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "audit": {
+      "type": "object",
+      "description": "Jejak audit lengkap ada di payload ini, bukan di sistem OneKlinik.",
+      "required": ["received_at", "completed_at"],
+      "additionalProperties": false,
+      "properties": {
+        "received_at":        { "type": "string", "format": "date-time" },
+        "completed_at":       { "type": "string", "format": "date-time" },
+        "processing_seconds": { "type": "number", "minimum": 0 },
+        "model_reference":    { "type": "string", "description": "Penanda model atau konfigurasi yang dipakai, untuk reproduksibilitas." },
+        "input_digest": {
+          "type": "string",
+          "description": "Hash SHA-256 dari berkas masuk. Memungkinkan TPA membuktikan berkas yang diproses identik dengan yang dikirim, tanpa OneKlinik menyimpan berkasnya."
+        }
+      }
+    },
+
+    "retention": {
+      "type": "object",
+      "description": "Pernyataan retensi. OneKlinik tidak menyimpan isi medis maupun data pribadi setelah pemrosesan selesai.",
+      "required": ["policy", "content_deleted"],
+      "additionalProperties": false,
+      "properties": {
+        "policy":            { "type": "string", "const": "zero_retention" },
+        "content_deleted":   { "type": "boolean" },
+        "deleted_at":        { "type": "string", "format": "date-time" },
+        "log_retained": {
+          "type": "string",
+          "description": "Apa yang tetap disimpan OneKlinik. Hanya log pemrosesan tanpa isi medis.",
+          "examples": ["processing_id, timestamp, jumlah halaman, status. Tanpa isi medis dan tanpa data pribadi."]
+        }
+      }
+    },
+
+    "errors": {
+      "type": "array",
+      "description": "Diisi bila sebagian atau seluruh pemrosesan gagal. Payload tetap dikirim agar TPA tahu statusnya.",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["unreadable_document", "unsupported_format", "missing_required_field", "policy_not_found", "ruleset_unavailable", "internal_error"]
+          },
+          "message":     { "type": "string" },
+          "document_id": { "type": "string" }
+        }
+      }
+    }
+  }
+}

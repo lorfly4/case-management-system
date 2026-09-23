@@ -1,0 +1,105 @@
+{
+  "schema_version": "0.1",
+  "processing_id": "OK-20260922-000150",
+  "request_ref": {
+    "tpa_claim_id": "CLM-2026-004473",
+    "policy_id": "POL-LIFE-0093",
+    "member_id": "MBR-2210",
+    "product_code": "LIFE-TERM-02",
+    "received_at": "2026-09-22T08:20:04+07:00"
+  },
+  "line_of_business": "life",
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "1.4.0",
+    "ruleset_version": "TC-LIFE-v1.0",
+    "processing_region": "asia-southeast2 (Jakarta)"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-2026-004473_akta_kematian.pdf",
+      "document_type": "death_certificate",
+      "pages": 1,
+      "extraction_quality": { "score": 0.94, "legible": true, "issues": [] },
+      "fields": [
+        { "name": "event_date",   "value": "2026-08-19", "confidence": 0.96, "source": { "page": 1, "bbox": [0.20, 0.41, 0.16, 0.02] } },
+        { "name": "cause_of_death", "value": "Kecelakaan lalu lintas", "confidence": 0.91, "source": { "page": 1, "bbox": [0.20, 0.47, 0.42, 0.02] } }
+      ]
+    },
+    {
+      "document_id": "CLM-2026-004473_laporan_polisi.pdf",
+      "document_type": "police_report",
+      "pages": 4,
+      "extraction_quality": { "score": 0.88, "legible": true, "issues": ["low_resolution"] },
+      "fields": [
+        { "name": "incident_date", "value": "2026-08-19", "confidence": 0.93, "source": { "page": 1, "bbox": [0.15, 0.30, 0.18, 0.02] } }
+      ]
+    }
+  ],
+  "policy_evaluation": {
+    "benefit_code": "AD-001",
+    "rules": [
+      {
+        "rule_id": "LIFE-STATUS-004",
+        "description": "Polis berstatus in force pada event date.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Life Pasal 4", "text": "Status polis dapat berupa pending, active/in force, grace period, lapsed, reinstated, matured, surrendered, terminated. Status harus dinilai pada tanggal kejadian yang relevan." },
+        "evidence": [ { "document_id": "CLM-2026-004473_akta_kematian.pdf", "page": 1 } ],
+        "evaluated_at": "2026-09-22T08:20:29+07:00"
+      },
+      {
+        "rule_id": "LIFE-EVENT-005",
+        "description": "Event date teridentifikasi dan konsisten antar dokumen.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Life Pasal 5" },
+        "evidence": [
+          { "document_id": "CLM-2026-004473_akta_kematian.pdf", "page": 1 },
+          { "document_id": "CLM-2026-004473_laporan_polisi.pdf",  "page": 1, "note": "Tanggal kejadian sama." }
+        ],
+        "evaluated_at": "2026-09-22T08:20:30+07:00"
+      },
+      {
+        "rule_id": "LIFE-AD-008",
+        "description": "Penyebab kematian memenuhi definisi accidental death.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Life, manfaat AD-001" },
+        "evidence": [ { "document_id": "CLM-2026-004473_akta_kematian.pdf", "page": 1 } ],
+        "evaluated_at": "2026-09-22T08:20:30+07:00"
+      },
+      {
+        "rule_id": "LIFE-CONTEST-014",
+        "description": "Event date berada dalam masa contestable sejak tanggal mulai pertanggungan.",
+        "verdict": "fail",
+        "source_clause": { "reference": "TC Life Pasal 14" },
+        "evidence": [ { "document_id": "CLM-2026-004473_akta_kematian.pdf", "page": 1, "note": "Kematian terjadi 7 bulan setelah polis mulai berlaku." } ],
+        "evaluated_at": "2026-09-22T08:20:31+07:00"
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "refer_investigation",
+    "confidence": 0.86,
+    "reasons": [
+      { "rule_id": "LIFE-CONTEST-014", "summary": "Klaim jatuh di dalam masa contestable, sehingga perlu verifikasi sebelum diputuskan." },
+      { "rule_id": "LIFE-AD-008",      "summary": "Seluruh syarat manfaat lain terpenuhi. Rujukan investigasi bukan karena kegagalan syarat polis." }
+    ],
+    "human_review": {
+      "required": true,
+      "triggers": ["amount_above_threshold"],
+      "notes": "Rujukan investigasi mengikuti alur TPA dan memerlukan persetujuan Client terlebih dahulu. Engine tidak merekomendasikan penolakan."
+    }
+  },
+  "audit": {
+    "received_at": "2026-09-22T08:20:04+07:00",
+    "completed_at": "2026-09-22T08:20:33+07:00",
+    "processing_seconds": 29.1,
+    "model_reference": "ok-claim-life-2026.09",
+    "input_digest": "sha256:9c2e75b1a84f03d6e7b41c09af25d83e6014b7cfa92d58e3106bf47d2a8c5b91"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-22T08:20:34+07:00",
+    "log_retained": "processing_id, timestamp, jumlah halaman, status. Tanpa isi medis dan tanpa data pribadi."
+  }
+}

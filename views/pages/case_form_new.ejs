@@ -172,6 +172,126 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <hr class="my-4">
+
+                                        <h5 class="mb-3">Informasi Polis</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="no_polis">No. Polis</label>
+                                                    <input type="text" class="form-control" id="no_polis" name="no_polis" value="<%= caseItem ? (caseItem.no_polis || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="pemegang_polis">Pemegang Polis</label>
+                                                    <input type="text" class="form-control" id="pemegang_polis" name="pemegang_polis" value="<%= caseItem ? (caseItem.pemegang_polis || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="tertanggung">Tertanggung</label>
+                                                    <input type="text" class="form-control" id="tertanggung" name="tertanggung" value="<%= caseItem ? (caseItem.tertanggung || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="tanggal_issued_polis">Tanggal Issued Polis</label>
+                                                    <input type="date" class="form-control" id="tanggal_issued_polis" name="tanggal_issued_polis" value="<%= caseItem && caseItem.tanggal_issued_polis ? new Date(caseItem.tanggal_issued_polis).toISOString().slice(0,10) : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="jenis_claim">Jenis Claim</label>
+                                                    <input type="text" class="form-control" id="jenis_claim" name="jenis_claim" value="<%= caseItem ? (caseItem.jenis_claim || '') : '' %>" placeholder="Regular Case">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="up">UP</label>
+                                                    <input type="number" class="form-control" id="up" name="up" value="<%= caseItem ? (caseItem.up || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="usia_polis">Usia Polis</label>
+                                                    <input type="text" class="form-control" id="usia_polis" name="usia_polis" value="<%= caseItem ? (caseItem.usia_polis || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="pekerjaan_tertanggung">Pekerjaan Tertanggung</label>
+                                                    <input type="text" class="form-control" id="pekerjaan_tertanggung" name="pekerjaan_tertanggung" value="<%= caseItem ? (caseItem.pekerjaan_tertanggung || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-group mb-3">
+                                                    <label for="alamat">Alamat</label>
+                                                    <textarea class="form-control" id="alamat" name="alamat" rows="2"><%= caseItem ? (caseItem.alamat || '') : '' %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <h5 class="mb-3">Informasi Klaim</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="tanggal_meninggal">Tanggal Meninggal</label>
+                                                    <input type="date" class="form-control" id="tanggal_meninggal" name="tanggal_meninggal" value="<%= caseItem && caseItem.tanggal_meninggal ? new Date(caseItem.tanggal_meninggal).toISOString().slice(0,10) : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="penyebab_meninggal">Penyebab Meninggal</label>
+                                                    <input type="text" class="form-control" id="penyebab_meninggal" name="penyebab_meninggal" value="<%= caseItem ? (caseItem.penyebab_meninggal || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="tempat_meninggal">Tempat Meninggal</label>
+                                                    <input type="text" class="form-control" id="tempat_meninggal" name="tempat_meninggal" value="<%= caseItem ? (caseItem.tempat_meninggal || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="pengaju_klaim">Pengaju Klaim</label>
+                                                    <input type="text" class="form-control" id="pengaju_klaim" name="pengaju_klaim" value="<%= caseItem ? (caseItem.pengaju_klaim || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-group mb-3">
+                                                    <label for="kronologi_singkat">Kronologi Singkat</label>
+                                                    <textarea class="form-control" id="kronologi_singkat" name="kronologi_singkat" rows="3"><%= caseItem ? (caseItem.kronologi_singkat || '') : '' %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <h5 class="mb-3">Claim Assesment</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="status_claim">Status Claim</label>
+                                                    <input type="text" class="form-control" id="status_claim" name="status_claim" value="<%= caseItem ? (caseItem.status_claim || '') : 'Unassigned' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="hasil_assesment">Hasil Assesment</label>
+                                                    <input type="text" class="form-control" id="hasil_assesment" name="hasil_assesment" value="<%= caseItem ? (caseItem.hasil_assesment || '') : '' %>">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-group mb-3">
+                                                    <label for="dasar_ketentuan">Dasar Ketentuan</label>
+                                                    <textarea class="form-control" id="dasar_ketentuan" name="dasar_ketentuan" rows="2"><%= caseItem ? (caseItem.dasar_ketentuan || '') : '' %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="card-footer bg-light">
