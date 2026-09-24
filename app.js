@@ -279,66 +279,54 @@ const normalizeClaimAssessmentData = (caseData) => {
   const json = resolveCaseJsonData(caseData) || {};
   const polis = json.informasi_polis || json.polis || {};
   const klaim = json.informasi_klaim || json.klaim || {};
-  const assesment = json.claim_assesment || json.assesment || {};
+  const assesment =
+    json.claim_assesment ||
+    json.claim_assessment ||
+    json.assesment ||
+    json.assessment ||
+    {};
+
+  // Prioritas data: JSON jika tersedia, lalu data hasil Register/CRUD dari tabel cases.
+  // Dengan begitu data yang diinput manual melalui Register/Edit Case tetap muncul
+  // pada PDF Claim Assessment meskipun json_data kosong atau tidak memiliki field tersebut.
+  const pick = (...values) => {
+    for (const value of values) {
+      if (value !== undefined && value !== null && String(value).trim() !== "") {
+        return value;
+      }
+    }
+    return "-";
+  };
+
+  const formatMaybeCurrency = (value) => {
+    if (value === undefined || value === null || String(value).trim() === "") return "-";
+    const numeric = Number(String(value).replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(numeric) ? formatCurrency(numeric) : String(value);
+  };
 
   return {
     informasi_polis: [
-      {
-        label: "No. Polis",
-        value: polis.no_polis || caseData.policy_id || "-",
-      },
-      {
-        label: "Pemegang Polis",
-        value: polis.pemegang_polis || caseData.policy_holder || "-",
-      },
-      {
-        label: "Tertanggung",
-        value:
-          polis.tertanggung || caseData.member_name || caseData.pic_name || "-",
-      },
-      {
-        label: "Tanggal Issued Polis",
-        value: polis.tanggal_issued_polis || caseData.policy_issued_date || "-",
-      },
-      {
-        label: "Jenis Claim",
-        value: polis.jenis_claim || caseData.type || "-",
-      },
-      {
-        label: "UP",
-        value: polis.up
-          ? formatCurrency(polis.up)
-          : caseData.amount
-            ? formatCurrency(caseData.amount)
-            : "-",
-      },
-      { label: "Usia Polis", value: polis.usia_polis || "-" },
-      {
-        label: "Pekerjaan Tertanggung",
-        value: polis.pekerjaan_tertanggung || "-",
-      },
-      { label: "Alamat", value: polis.alamat || caseData.address || "-" },
+      { label: "No. Polis", value: pick(polis.no_polis, caseData.no_polis, caseData.policy_id) },
+      { label: "Pemegang Polis", value: pick(polis.pemegang_polis, caseData.pemegang_polis, caseData.policy_holder) },
+      { label: "Tertanggung", value: pick(polis.tertanggung, caseData.tertanggung, caseData.member_name, caseData.pic_name) },
+      { label: "Tanggal Issued Polis", value: pick(polis.tanggal_issued_polis, caseData.tanggal_issued_polis, caseData.policy_issued_date) },
+      { label: "Jenis Claim", value: pick(polis.jenis_claim, caseData.jenis_claim, caseData.type) },
+      { label: "UP", value: formatMaybeCurrency(pick(polis.up, caseData.up, caseData.amount)) },
+      { label: "Usia Polis", value: pick(polis.usia_polis, caseData.usia_polis) },
+      { label: "Pekerjaan Tertanggung", value: pick(polis.pekerjaan_tertanggung, caseData.pekerjaan_tertanggung) },
+      { label: "Alamat", value: pick(polis.alamat, caseData.alamat, caseData.address) },
     ],
     informasi_klaim: [
-      { label: "Tanggal Meninggal", value: klaim.tanggal_meninggal || "-" },
-      { label: "Penyebab Meninggal", value: klaim.penyebab_meninggal || "-" },
-      { label: "Tempat Meninggal", value: klaim.tempat_meninggal || "-" },
-      { label: "Pengaju Klaim", value: klaim.pengaju_klaim || "-" },
-      {
-        label: "Kronologi Singkat",
-        value: klaim.kronologi_singkat || caseData.description || "-",
-      },
+      { label: "Tanggal Meninggal", value: pick(klaim.tanggal_meninggal, caseData.tanggal_meninggal) },
+      { label: "Penyebab Meninggal", value: pick(klaim.penyebab_meninggal, caseData.penyebab_meninggal) },
+      { label: "Tempat Meninggal", value: pick(klaim.tempat_meninggal, caseData.tempat_meninggal) },
+      { label: "Pengaju Klaim", value: pick(klaim.pengaju_klaim, caseData.pengaju_klaim) },
+      { label: "Kronologi Singkat", value: pick(klaim.kronologi_singkat, caseData.kronologi_singkat, caseData.description) },
     ],
     claim_assesment: [
-      {
-        label: "Status Claim",
-        value: assesment.status_claim || caseData.status || "-",
-      },
-      { label: "Hasil Assesment", value: assesment.hasil_assesment || "-" },
-      {
-        label: "Dasar Ketentuan",
-        value: formatDasarKetentuan(assesment.dasar_ketentuan),
-      },
+      { label: "Status Claim", value: pick(assesment.status_claim, caseData.status_claim, caseData.status) },
+      { label: "Hasil Assessment", value: pick(assesment.hasil_assesment, assesment.hasil_assessment, caseData.hasil_assesment) },
+      { label: "Dasar Ketentuan", value: formatDasarKetentuan(pick(assesment.dasar_ketentuan, caseData.dasar_ketentuan)) },
     ],
   };
 };
