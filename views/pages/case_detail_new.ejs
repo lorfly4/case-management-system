@@ -249,14 +249,72 @@
         </form>
 </div>
 
-<!-- Form Upload JSON -->
-<form action="/case/<%= caseItem.id %>/upload-json" method="POST" enctype="multipart/form-data" class="d-inline">
-    <input type="file" name="json_file" id="jsonFileInput" accept=".json" style="display: none;" onchange="this.form.submit()">
-    <button type="button" class="btn btn-info btn-sm text-white" onclick="document.getElementById('jsonFileInput').click()">
-        <i class="fas fa-file-code me-1"></i>Upload JSON
-    </button>
-</form>
+<div class="card border-light bg-light mt-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">
+            <i class="fas fa-file-code me-2 text-info"></i>
+            Upload JSON
+        </h5>
+    </div>
 
+    <div class="card-body">
+
+        <!-- JSON 1 -->
+        <form
+            action="/case/<%= caseItem.id %>/upload-json/1"
+            method="POST"
+            enctype="multipart/form-data"
+            class="mb-3"
+        >
+            <label class="form-label fw-bold">
+                JSON 1
+            </label>
+
+            <div class="input-group">
+                <input
+                    type="file"
+                    name="json_file"
+                    class="form-control"
+                    accept=".json"
+                    required
+                >
+
+                <button type="submit" class="btn btn-info text-white">
+                    <i class="fas fa-upload me-1"></i>
+                    Upload JSON 1
+                </button>
+            </div>
+        </form>
+
+
+        <!-- JSON 2 -->
+        <form
+            action="/case/<%= caseItem.id %>/upload-json/2"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+            <label class="form-label fw-bold">
+                JSON 2
+            </label>
+
+            <div class="input-group">
+                <input
+                    type="file"
+                    name="json_file"
+                    class="form-control"
+                    accept=".json"
+                    required
+                >
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload me-1"></i>
+                    Upload JSON 2
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
                             <% if (role === 'admin' || role === 'spv') { %>
                             <div class="card border-light bg-light">
                                 <div class="card-header bg-light">

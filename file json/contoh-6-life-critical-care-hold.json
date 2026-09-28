@@ -1,0 +1,311 @@
+{
+  "schema_version": "0.2",
+  "processing_id": "OK-20260924-000204",
+  "request_ref": {
+    "tpa_claim_id": "CLM-2026-005131",
+    "policy_id": "POL-LIFE-0703",
+    "member_id": "MBR-5519",
+    "product_code": "LIFE-CC-01",
+    "received_at": "2026-09-24T10:15:00+07:00"
+  },
+  "line_of_business": "life",
+  "claim_type": "critical_care",
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "1.5.0",
+    "ruleset_version": "TC-LIFE-v1.0",
+    "processing_region": "asia-southeast2 (Jakarta)"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+      "document_type": "claim_form",
+      "pages": 3,
+      "extraction_quality": {
+        "score": 0.93,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-2026-005131_resume_medis.pdf",
+      "document_type": "medical_resume",
+      "pages": 2,
+      "extraction_quality": {
+        "score": 0.91,
+        "legible": true,
+        "issues": []
+      }
+    }
+  ],
+  "extracted_data": {
+    "policy_info": {
+      "policy_number": {
+        "value": "POL-LIFE-0703",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "policyholder_name": {
+        "value": "Rudi Hartono",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "policy_effective_date": {
+        "value": "2025-05-15",
+        "origin": "tpa_input"
+      },
+      "sum_assured": {
+        "value": 50000000,
+        "origin": "tpa_input"
+      },
+      "policy_age_months": {
+        "value": 16,
+        "origin": "derived",
+        "note": "Dari 2025-05-15 sampai tanggal masuk ICU 2026-09-10"
+      },
+      "policy_status": {
+        "value": "in_force",
+        "origin": "tpa_input"
+      }
+    },
+    "insured_info": {
+      "insured_name": {
+        "value": "Rudi Hartono",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "date_of_birth": {
+        "value": "1979-02-07",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "occupation": {
+        "value": "Pegawai negeri",
+        "origin": "extracted",
+        "confidence": 0.92,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "address": {
+        "value": "Jl. Contoh Baru No. 8, Tangerang",
+        "origin": "extracted",
+        "confidence": 0.89,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 1
+        }
+      }
+    },
+    "claimant_info": {
+      "claimant_name": {
+        "value": "Rudi Hartono",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "relationship_to_insured": {
+        "value": "Diri sendiri",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "claim_submission_date": {
+        "value": "2026-09-21",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 3
+        }
+      }
+    },
+    "claim_info": {
+      "event_date": {
+        "value": "2026-09-10",
+        "origin": "extracted",
+        "confidence": 0.94,
+        "source": {
+          "document_id": "CLM-2026-005131_resume_medis.pdf",
+          "page": 1
+        }
+      },
+      "brief_chronology": {
+        "value": "Sesak napas berat, masuk IGD lalu dirawat di ICU 10 sampai 15 September 2026 dengan pneumonia berat.",
+        "origin": "extracted",
+        "confidence": 0.89,
+        "source": {
+          "document_id": "CLM-2026-005131_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "critical_care": {
+        "hospital_name": {
+          "value": "RS Contoh Tangerang",
+          "origin": "extracted",
+          "confidence": 0.95,
+          "source": {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1
+          }
+        },
+        "care_unit": {
+          "value": "ICU",
+          "origin": "extracted",
+          "confidence": 0.96,
+          "source": {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1
+          }
+        },
+        "icu_admission_date": {
+          "value": "2026-09-10",
+          "origin": "extracted",
+          "confidence": 0.94,
+          "source": {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1
+          }
+        },
+        "icu_discharge_date": {
+          "value": "2026-09-15",
+          "origin": "extracted",
+          "confidence": 0.93,
+          "source": {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1
+          }
+        },
+        "icu_days": {
+          "value": 5,
+          "origin": "derived",
+          "note": "Dari 2026-09-10 sampai 2026-09-15"
+        },
+        "diagnosis_text": {
+          "value": "Pneumonia berat",
+          "origin": "extracted",
+          "confidence": 0.92,
+          "source": {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1
+          }
+        },
+        "icd10_code": {
+          "value": "J18.9",
+          "origin": "extracted",
+          "confidence": 0.89,
+          "source": {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1
+          }
+        },
+        "mechanical_ventilation": {
+          "value": null,
+          "origin": "not_found"
+        }
+      }
+    }
+  },
+  "policy_evaluation": {
+    "benefit_code": "CC-001",
+    "rules": [
+      {
+        "rule_id": "LIFE-STATUS-004",
+        "description": "Polis in force pada tanggal masuk ICU.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 4"
+        },
+        "evaluated_at": "2026-09-24T10:15:30+07:00"
+      },
+      {
+        "rule_id": "LIFE-CC-DEF-040",
+        "description": "Perawatan di ruang intensif minimal 72 jam.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 40"
+        },
+        "evaluated_at": "2026-09-24T10:15:31+07:00",
+        "evidence": [
+          {
+            "document_id": "CLM-2026-005131_resume_medis.pdf",
+            "page": 1,
+            "note": "5 hari di ICU."
+          }
+        ]
+      },
+      {
+        "rule_id": "LIFE-CC-DOC-041",
+        "description": "Dokumen wajib: resume medis, rincian biaya ICU, dan lembar observasi ICU.",
+        "verdict": "indeterminate",
+        "source_clause": {
+          "reference": "TC Life Pasal 41"
+        },
+        "evaluated_at": "2026-09-24T10:15:31+07:00"
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "hold",
+    "confidence": 0.83,
+    "reasons": [
+      {
+        "rule_id": "LIFE-CC-DOC-041",
+        "summary": "Rincian biaya ICU dan lembar observasi ICU belum diterima."
+      }
+    ],
+    "hold": {
+      "reason": "pending_documents",
+      "pending_items": [
+        "Rincian biaya ruang ICU",
+        "Lembar observasi harian ICU"
+      ],
+      "notes": "Syarat lain terpenuhi. Proses dapat dilanjutkan begitu dokumen masuk."
+    }
+  },
+  "report_summary": {
+    "status_label": "Hold",
+    "hasil_assessment": "Perawatan ICU 5 hari memenuhi definisi Critical Care. Klaim ditahan sampai rincian biaya dan lembar observasi ICU diterima.",
+    "dasar_ketentuan": [
+      "TC Life Pasal 4",
+      "TC Life Pasal 40",
+      "TC Life Pasal 41"
+    ]
+  },
+  "audit": {
+    "received_at": "2026-09-24T10:15:00+07:00",
+    "completed_at": "2026-09-24T10:15:34+07:00",
+    "processing_seconds": 34.5,
+    "model_reference": "ok-claim-life-2026.09",
+    "input_digest": "sha256:c3a91e05d7f24b68a0e5c2b97d14f38a6e02b5c9d71f4a3e8b60c2d59f1e7a48"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-24T10:15:34+07:00",
+    "log_retained": "processing_id, timestamp, jumlah halaman, status. Tanpa isi medis dan tanpa data pribadi."
+  }
+}

@@ -1,0 +1,411 @@
+{
+  "schema_version": "0.2",
+  "processing_id": "OK-20260924-000202",
+  "request_ref": {
+    "tpa_claim_id": "CLM-2026-005102",
+    "policy_id": "POL-LIFE-0412",
+    "member_id": "MBR-3307",
+    "product_code": "LIFE-TERM-02",
+    "received_at": "2026-09-24T10:05:00+07:00"
+  },
+  "line_of_business": "life",
+  "claim_type": "death",
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "1.5.0",
+    "ruleset_version": "TC-LIFE-v1.0",
+    "processing_region": "asia-southeast2 (Jakarta)"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+      "document_type": "claim_form",
+      "pages": 3,
+      "extraction_quality": {
+        "score": 0.92,
+        "legible": true,
+        "issues": [
+          "handwritten"
+        ]
+      }
+    },
+    {
+      "document_id": "CLM-2026-005102_akta_kematian.pdf",
+      "document_type": "death_certificate",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.95,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-2026-005102_surat_kematian_rs.pdf",
+      "document_type": "hospital_death_statement",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.9,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-2026-005102_ktp_kk.pdf",
+      "document_type": "family_card",
+      "pages": 2,
+      "extraction_quality": {
+        "score": 0.91,
+        "legible": true,
+        "issues": []
+      }
+    }
+  ],
+  "extracted_data": {
+    "policy_info": {
+      "policy_number": {
+        "value": "POL-LIFE-0412",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "policyholder_name": {
+        "value": "Siti Rahmawati",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "product_name": {
+        "value": "Term Life Proteksi 02",
+        "origin": "tpa_input"
+      },
+      "policy_issue_date": {
+        "value": "2023-03-10",
+        "origin": "tpa_input"
+      },
+      "policy_effective_date": {
+        "value": "2023-03-10",
+        "origin": "tpa_input"
+      },
+      "sum_assured": {
+        "value": 200000000,
+        "origin": "tpa_input"
+      },
+      "policy_age_months": {
+        "value": 41,
+        "origin": "derived",
+        "note": "Dari 2023-03-10 sampai tanggal meninggal 2026-08-28"
+      },
+      "policy_status": {
+        "value": "in_force",
+        "origin": "tpa_input"
+      }
+    },
+    "insured_info": {
+      "insured_name": {
+        "value": "Ahmad Hidayat",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "date_of_birth": {
+        "value": "1971-11-02",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005102_ktp_kk.pdf",
+          "page": 1
+        }
+      },
+      "gender": {
+        "value": "L",
+        "origin": "extracted",
+        "confidence": 0.98,
+        "source": {
+          "document_id": "CLM-2026-005102_ktp_kk.pdf",
+          "page": 1
+        }
+      },
+      "occupation": {
+        "value": "Wiraswasta",
+        "origin": "extracted",
+        "confidence": 0.91,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "address": {
+        "value": "Jl. Contoh Raya No. 21, Bekasi",
+        "origin": "extracted",
+        "confidence": 0.89,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "id_number_masked": {
+        "value": "************4412",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005102_ktp_kk.pdf",
+          "page": 1
+        }
+      }
+    },
+    "claimant_info": {
+      "claimant_name": {
+        "value": "Siti Rahmawati",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "relationship_to_insured": {
+        "value": "Istri",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "phone": {
+        "value": "0812****7788",
+        "origin": "extracted",
+        "confidence": 0.9,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "claim_submission_date": {
+        "value": "2026-09-12",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 3
+        }
+      },
+      "beneficiary_name": {
+        "value": "Siti Rahmawati",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 3
+        }
+      },
+      "bank_name": {
+        "value": "Bank Contoh",
+        "origin": "extracted",
+        "confidence": 0.93,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 3
+        }
+      },
+      "account_number_masked": {
+        "value": "******9021",
+        "origin": "extracted",
+        "confidence": 0.92,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 3
+        }
+      }
+    },
+    "claim_info": {
+      "event_date": {
+        "value": "2026-08-28",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005102_akta_kematian.pdf",
+          "page": 1
+        }
+      },
+      "brief_chronology": {
+        "value": "Tertanggung mengalami nyeri dada di rumah, dibawa ke IGD RS Contoh Bekasi, dan meninggal pada hari yang sama dengan diagnosis serangan jantung.",
+        "origin": "extracted",
+        "confidence": 0.88,
+        "source": {
+          "document_id": "CLM-2026-005102_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "death": {
+        "date_of_death": {
+          "value": "2026-08-28",
+          "origin": "extracted",
+          "confidence": 0.96,
+          "source": {
+            "document_id": "CLM-2026-005102_akta_kematian.pdf",
+            "page": 1
+          }
+        },
+        "cause_of_death": {
+          "value": "Infark miokard akut",
+          "origin": "extracted",
+          "confidence": 0.91,
+          "source": {
+            "document_id": "CLM-2026-005102_surat_kematian_rs.pdf",
+            "page": 1
+          }
+        },
+        "place_of_death": {
+          "value": "RS Contoh Bekasi",
+          "origin": "extracted",
+          "confidence": 0.93,
+          "source": {
+            "document_id": "CLM-2026-005102_surat_kematian_rs.pdf",
+            "page": 1
+          }
+        },
+        "death_category": {
+          "value": "natural",
+          "origin": "derived",
+          "note": "Penyebab medis, tidak ada indikasi kecelakaan di dokumen"
+        },
+        "death_certificate_number": {
+          "value": "3275-KM-28082026-0017",
+          "origin": "extracted",
+          "confidence": 0.94,
+          "source": {
+            "document_id": "CLM-2026-005102_akta_kematian.pdf",
+            "page": 1
+          }
+        }
+      }
+    }
+  },
+  "policy_evaluation": {
+    "benefit_code": "DB-001",
+    "rules": [
+      {
+        "rule_id": "LIFE-STATUS-004",
+        "description": "Polis berstatus in force pada tanggal meninggal.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 4"
+        },
+        "evaluated_at": "2026-09-24T10:05:30+07:00"
+      },
+      {
+        "rule_id": "LIFE-EVENT-005",
+        "description": "Tanggal meninggal konsisten antar dokumen.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 5"
+        },
+        "evaluated_at": "2026-09-24T10:05:30+07:00",
+        "evidence": [
+          {
+            "document_id": "CLM-2026-005102_akta_kematian.pdf",
+            "page": 1,
+            "note": "Sama dengan surat kematian RS."
+          }
+        ]
+      },
+      {
+        "rule_id": "LIFE-CONTEST-014",
+        "description": "Kematian di luar masa contestable 24 bulan.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 14"
+        },
+        "evaluated_at": "2026-09-24T10:05:31+07:00"
+      },
+      {
+        "rule_id": "LIFE-EXCL-011",
+        "description": "Penyebab kematian tidak termasuk pengecualian polis.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 11"
+        },
+        "evaluated_at": "2026-09-24T10:05:31+07:00",
+        "evidence": [
+          {
+            "document_id": "CLM-2026-005102_surat_kematian_rs.pdf",
+            "page": 1
+          }
+        ]
+      },
+      {
+        "rule_id": "LIFE-BENEF-020",
+        "description": "Pengaju klaim adalah penerima manfaat yang sah.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 20"
+        },
+        "evaluated_at": "2026-09-24T10:05:32+07:00",
+        "evidence": [
+          {
+            "document_id": "CLM-2026-005102_ktp_kk.pdf",
+            "page": 2,
+            "note": "Nama istri tercantum di kartu keluarga."
+          }
+        ]
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "approve",
+    "confidence": 0.92,
+    "reasons": [
+      {
+        "rule_id": "LIFE-CONTEST-014",
+        "summary": "Usia polis 41 bulan, di luar masa contestable."
+      },
+      {
+        "rule_id": "LIFE-EXCL-011",
+        "summary": "Penyebab kematian alami, tidak termasuk pengecualian."
+      }
+    ],
+    "amount": {
+      "currency": "IDR",
+      "sum_assured": 200000000,
+      "payable": 200000000,
+      "calculation_note": "Manfaat meninggal sebesar 100% UP."
+    },
+    "human_review": {
+      "required": false
+    }
+  },
+  "report_summary": {
+    "status_label": "Diterima",
+    "hasil_assessment": "Tertanggung meninggal karena infark miokard akut pada usia polis 41 bulan. Syarat polis terpenuhi, manfaat meninggal Rp 200.000.000.",
+    "dasar_ketentuan": [
+      "TC Life Pasal 4",
+      "TC Life Pasal 5",
+      "TC Life Pasal 11",
+      "TC Life Pasal 14",
+      "TC Life Pasal 20"
+    ]
+  },
+  "audit": {
+    "received_at": "2026-09-24T10:05:00+07:00",
+    "completed_at": "2026-09-24T10:05:36+07:00",
+    "processing_seconds": 36.0,
+    "model_reference": "ok-claim-life-2026.09",
+    "input_digest": "sha256:1f8a3c77e2b94d05a6c1e98b3f20d4a7c55e0b18d9f6a2c3e47b81d0f9a6c254"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-24T10:05:36+07:00",
+    "log_retained": "processing_id, timestamp, jumlah halaman, status. Tanpa isi medis dan tanpa data pribadi."
+  }
+}

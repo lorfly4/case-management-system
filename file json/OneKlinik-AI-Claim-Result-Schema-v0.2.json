@@ -1,0 +1,916 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oneklinik.com/schemas/ai-claim-result/v0.2.json",
+  "title": "OneKlinik AI Claim Assessment Result",
+  "description": "Payload hasil pemrosesan AI OneKlinik yang dikembalikan ke sistem TPA. Input: dokumen klaim (formulir klaim dan dokumen pendukung). Output: (1) data yang diekstrak dari dokumen, siap diisikan ke field CMS TPA, dan (2) rekomendasi hasil pencocokan T&C. Bersifat rekomendasi, bukan keputusan. Payload ini sekaligus menjadi catatan audit, karena OneKlinik tidak menyimpan data setelah pemrosesan selesai.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "processing_id",
+    "request_ref",
+    "line_of_business",
+    "claim_type",
+    "engine",
+    "documents",
+    "extracted_data",
+    "policy_evaluation",
+    "assessment",
+    "report_summary",
+    "audit",
+    "retention"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "ExtractedField": {
+      "type": "object",
+      "description": "Satu nilai hasil ekstraksi. Setiap nilai membawa asal-usulnya supaya analis tahu mana yang dibaca dari dokumen dan mana yang berasal dari data TPA.",
+      "required": [
+        "value",
+        "origin"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ],
+          "description": "Nilai yang sudah dinormalkan. Tanggal: YYYY-MM-DD. Nominal: angka tanpa pemisah ribuan."
+        },
+        "raw_text": {
+          "type": "string",
+          "description": "Teks asli sebagaimana tertulis di dokumen, sebelum dinormalkan."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Tingkat keyakinan ekstraksi. Tidak diisi bila origin = tpa_input."
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "extracted",
+            "tpa_input",
+            "derived",
+            "not_found"
+          ],
+          "description": "extracted = dibaca dari dokumen klaim. tpa_input = dikirim oleh sistem TPA dan dikembalikan apa adanya. derived = dihitung dari nilai lain (misalnya usia polis). not_found = tidak ada di dokumen yang diterima; value = null."
+        },
+        "source": {
+          "type": "object",
+          "description": "Lokasi nilai di dokumen, untuk penelusuran manual.",
+          "additionalProperties": false,
+          "properties": {
+            "document_id": {
+              "type": "string"
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "bbox": {
+              "type": "array",
+              "description": "[x, y, width, height] relatif 0..1 terhadap ukuran halaman.",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "maxItems": 4
+            }
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.2"
+    },
+    "processing_id": {
+      "type": "string",
+      "examples": [
+        "OK-20260924-000201"
+      ]
+    },
+    "request_ref": {
+      "type": "object",
+      "description": "Pengait ke sistem TPA. Dikembalikan apa adanya dari payload masuk.",
+      "required": [
+        "tpa_claim_id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "tpa_claim_id": {
+          "type": "string"
+        },
+        "tpa_batch_id": {
+          "type": "string"
+        },
+        "policy_id": {
+          "type": "string"
+        },
+        "member_id": {
+          "type": "string"
+        },
+        "product_code": {
+          "type": "string"
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "line_of_business": {
+      "type": "string",
+      "enum": [
+        "health",
+        "life",
+        "general"
+      ]
+    },
+    "claim_type": {
+      "type": "string",
+      "enum": [
+        "hospitalization",
+        "outpatient",
+        "death",
+        "critical_illness",
+        "critical_care",
+        "total_permanent_disability",
+        "other"
+      ],
+      "description": "Jenis klaim. Menentukan blok mana di extracted_data.claim_info yang terisi. death = klaim meninggal, critical_illness = CI, critical_care = CC (perawatan intensif ICU/ICCU/NICU/PICU/HCU)."
+    },
+    "engine": {
+      "type": "object",
+      "required": [
+        "provider",
+        "engine_version",
+        "ruleset_version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string",
+          "const": "OneKlinik"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "ruleset_version": {
+          "type": "string",
+          "examples": [
+            "TC-LIFE-v1.0"
+          ]
+        },
+        "processing_region": {
+          "type": "string",
+          "examples": [
+            "asia-southeast2 (Jakarta)"
+          ]
+        }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "description": "Daftar dokumen yang diproses beserta kualitas bacanya.",
+      "items": {
+        "type": "object",
+        "required": [
+          "document_id",
+          "document_type",
+          "pages",
+          "extraction_quality"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "claim_form",
+              "invoice",
+              "receipt",
+              "medical_resume",
+              "lab_result",
+              "pathology_report",
+              "imaging_report",
+              "prescription",
+              "referral_letter",
+              "discharge_summary",
+              "icu_record",
+              "doctor_statement",
+              "death_certificate",
+              "hospital_death_statement",
+              "police_report",
+              "id_document",
+              "family_card",
+              "beneficiary_statement",
+              "policy_document",
+              "other",
+              "unidentified"
+            ]
+          },
+          "pages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "extraction_quality": {
+            "type": "object",
+            "required": [
+              "score",
+              "legible"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "legible": {
+                "type": "boolean"
+              },
+              "issues": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "blurry",
+                    "cropped",
+                    "handwritten",
+                    "rotated",
+                    "partial_scan",
+                    "low_resolution",
+                    "password_protected",
+                    "duplicate_of_other_document",
+                    "missing_signature",
+                    "missing_stamp"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "extracted_data": {
+      "type": "object",
+      "description": "Data yang dibaca AI dari dokumen klaim, dikelompokkan mengikuti template Claim Assessment Deswa. Setiap field memakai ExtractedField. Field yang tidak relevan untuk claim_type tertentu boleh dihilangkan; field yang relevan tapi tidak ditemukan diisi origin = not_found.",
+      "required": [
+        "policy_info",
+        "insured_info",
+        "claim_info"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "policy_info": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "policy_number": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "No. Polis"
+            },
+            "policyholder_name": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Pemegang Polis"
+            },
+            "product_name": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Nama produk"
+            },
+            "policy_issue_date": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Tanggal Issued Polis"
+            },
+            "policy_effective_date": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Tanggal mulai pertanggungan"
+            },
+            "sum_assured": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "UP (Uang Pertanggungan), angka dalam IDR"
+            },
+            "policy_age_months": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Usia Polis dalam bulan, dihitung dari tanggal mulai pertanggungan sampai tanggal kejadian (origin = derived)"
+            },
+            "policy_status": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Status polis pada tanggal kejadian, biasanya dari data TPA"
+            }
+          }
+        },
+        "insured_info": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "insured_name": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Tertanggung"
+            },
+            "date_of_birth": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Tanggal lahir tertanggung"
+            },
+            "gender": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Jenis kelamin"
+            },
+            "occupation": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Pekerjaan Tertanggung"
+            },
+            "address": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Alamat"
+            },
+            "id_number_masked": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "NIK tertanggung, disamarkan kecuali 4 digit terakhir"
+            }
+          }
+        },
+        "claimant_info": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "claimant_name": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Pengaju Klaim"
+            },
+            "relationship_to_insured": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Hubungan pengaju dengan tertanggung"
+            },
+            "phone": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "No. telepon pengaju"
+            },
+            "claim_submission_date": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Tanggal pengajuan klaim di formulir"
+            },
+            "beneficiary_name": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Nama penerima manfaat"
+            },
+            "bank_name": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Nama bank penerima manfaat"
+            },
+            "account_number_masked": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "No. rekening, disamarkan kecuali 4 digit terakhir"
+            }
+          }
+        },
+        "claim_info": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "event_date": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Tanggal kejadian utama (tanggal meninggal / tanggal diagnosis / tanggal masuk rawat)"
+            },
+            "brief_chronology": {
+              "$ref": "#/$defs/ExtractedField",
+              "description": "Kronologi Singkat, dirangkum dari formulir klaim dan dokumen pendukung"
+            },
+            "death": {
+              "type": "object",
+              "description": "Diisi bila claim_type = death.",
+              "additionalProperties": false,
+              "properties": {
+                "date_of_death": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal Meninggal"
+                },
+                "cause_of_death": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Penyebab Meninggal"
+                },
+                "place_of_death": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tempat Meninggal"
+                },
+                "death_category": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "natural | accident | unknown"
+                },
+                "death_certificate_number": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "No. akta / surat keterangan kematian"
+                }
+              }
+            },
+            "critical_illness": {
+              "type": "object",
+              "description": "Diisi bila claim_type = critical_illness.",
+              "additionalProperties": false,
+              "properties": {
+                "diagnosis_text": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Diagnosis"
+                },
+                "icd10_code": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Kode ICD-10"
+                },
+                "ci_condition": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Kondisi CI sesuai daftar polis, misalnya kanker, stroke, serangan jantung"
+                },
+                "diagnosis_date": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal diagnosis pasti"
+                },
+                "first_symptom_date": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal gejala pertama"
+                },
+                "diagnosing_doctor": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Dokter yang mendiagnosis"
+                },
+                "supporting_examination": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Pemeriksaan penunjang, misalnya hasil PA, CT scan"
+                }
+              }
+            },
+            "critical_care": {
+              "type": "object",
+              "description": "Diisi bila claim_type = critical_care.",
+              "additionalProperties": false,
+              "properties": {
+                "hospital_name": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Rumah sakit"
+                },
+                "care_unit": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "ICU | ICCU | NICU | PICU | HCU"
+                },
+                "icu_admission_date": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal masuk ruang intensif"
+                },
+                "icu_discharge_date": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal keluar ruang intensif"
+                },
+                "icu_days": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Lama rawat intensif (hari), origin = derived"
+                },
+                "diagnosis_text": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Diagnosis"
+                },
+                "icd10_code": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Kode ICD-10"
+                },
+                "mechanical_ventilation": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Memakai ventilator (true/false)"
+                }
+              }
+            },
+            "hospitalization": {
+              "type": "object",
+              "description": "Diisi bila claim_type = hospitalization atau outpatient.",
+              "additionalProperties": false,
+              "properties": {
+                "provider_name": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Rumah sakit / klinik"
+                },
+                "admission_date": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal masuk"
+                },
+                "discharge_date": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Tanggal keluar"
+                },
+                "diagnosis_text": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Diagnosis"
+                },
+                "icd10_code": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Kode ICD-10"
+                },
+                "invoice_total": {
+                  "$ref": "#/$defs/ExtractedField",
+                  "description": "Total tagihan (IDR)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "policy_evaluation": {
+      "type": "object",
+      "required": [
+        "rules"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "benefit_code": {
+          "type": "string",
+          "examples": [
+            "IP-001",
+            "DB-001",
+            "CI-001",
+            "CC-001"
+          ]
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "rule_id",
+              "description",
+              "verdict",
+              "source_clause"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "verdict": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not_applicable",
+                  "indeterminate"
+                ]
+              },
+              "source_clause": {
+                "type": "object",
+                "required": [
+                  "reference"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "reference": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                }
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "document_id"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "document_id": {
+                      "type": "string"
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "evaluated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "required": [
+        "recommendation",
+        "confidence",
+        "reasons"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "recommendation": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "reject",
+            "refer_investigation",
+            "needs_human_review",
+            "hold"
+          ],
+          "description": "approve = Diterima, reject = Ditolak, refer_investigation = Investigasi, needs_human_review = Needs Review (bukti ada tapi tidak cukup jelas, perlu analis/dokter), hold = Hold (proses berhenti menunggu hal di luar assessment: dokumen belum lengkap atau proses POS)."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "rule_id",
+              "summary"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "amount": {
+          "type": "object",
+          "description": "Perhitungan nilai. Diisi bila recommendation = approve.",
+          "additionalProperties": false,
+          "properties": {
+            "currency": {
+              "type": "string",
+              "const": "IDR"
+            },
+            "billed": {
+              "type": "number",
+              "minimum": 0
+            },
+            "sum_assured": {
+              "type": "number",
+              "minimum": 0
+            },
+            "not_covered": {
+              "type": "number",
+              "minimum": 0
+            },
+            "deductible": {
+              "type": "number",
+              "minimum": 0
+            },
+            "copay": {
+              "type": "number",
+              "minimum": 0
+            },
+            "payable": {
+              "type": "number",
+              "minimum": 0
+            },
+            "calculation_note": {
+              "type": "string"
+            }
+          }
+        },
+        "human_review": {
+          "type": "object",
+          "required": [
+            "required"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "incomplete_data",
+                  "conflicting_documents",
+                  "ambiguous_wording",
+                  "illegible_document",
+                  "amount_above_threshold",
+                  "benefit_not_in_schedule",
+                  "policy_status_unclear",
+                  "event_date_unclear",
+                  "low_extraction_confidence",
+                  "possible_pre_existing_condition",
+                  "within_contestable_period"
+                ]
+              }
+            },
+            "notes": {
+              "type": "string"
+            },
+            "missing_items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "hold": {
+          "type": "object",
+          "description": "Wajib diisi bila recommendation = hold.",
+          "required": [
+            "reason"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "reason": {
+              "type": "string",
+              "enum": [
+                "pending_documents",
+                "pending_pos",
+                "pending_client_confirmation",
+                "other"
+              ]
+            },
+            "pending_items": {
+              "type": "array",
+              "description": "Dokumen atau proses yang ditunggu.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "recommendation": {
+                "const": "hold"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "hold"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recommendation": {
+                "const": "needs_human_review"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "human_review"
+            ]
+          }
+        }
+      ]
+    },
+    "report_summary": {
+      "type": "object",
+      "description": "Ringkasan siap tampil untuk bagian HASIL CLAIM ASSESSMENT di template Deswa, dalam Bahasa Indonesia.",
+      "required": [
+        "status_label",
+        "hasil_assessment",
+        "dasar_ketentuan"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status_label": {
+          "type": "string",
+          "enum": [
+            "Diterima",
+            "Ditolak",
+            "Investigasi",
+            "Needs Review",
+            "Hold"
+          ],
+          "description": "Terjemahan assessment.recommendation."
+        },
+        "hasil_assessment": {
+          "type": "string",
+          "description": "Satu sampai tiga kalimat hasil penilaian."
+        },
+        "dasar_ketentuan": {
+          "type": "array",
+          "description": "Pasal T&C yang menjadi dasar, diambil dari policy_evaluation.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "required": [
+        "received_at",
+        "completed_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "processing_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model_reference": {
+          "type": "string"
+        },
+        "input_digest": {
+          "type": "string"
+        }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "required": [
+        "policy",
+        "content_deleted"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "type": "string",
+          "const": "zero_retention"
+        },
+        "content_deleted": {
+          "type": "boolean"
+        },
+        "deleted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "log_retained": {
+          "type": "string"
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "unreadable_document",
+              "unsupported_format",
+              "missing_required_field",
+              "policy_not_found",
+              "ruleset_unavailable",
+              "internal_error"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "document_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

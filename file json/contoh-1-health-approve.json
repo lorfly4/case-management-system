@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.1",
+  "processing_id": "OK-20260922-000148",
+  "request_ref": {
+    "tpa_claim_id": "CLM-2026-004471",
+    "tpa_batch_id": "BATCH-20260922-A",
+    "policy_id": "POL-001",
+    "member_id": "MBR-0001",
+    "product_code": "HEALTH-01",
+    "received_at": "2026-09-22T08:14:02+07:00"
+  },
+  "line_of_business": "health",
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "1.4.0",
+    "ruleset_version": "TC-HEALTH-v1.0",
+    "processing_region": "asia-southeast2 (Jakarta)"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-2026-004471_invoice.pdf",
+      "document_type": "invoice",
+      "pages": 2,
+      "extraction_quality": { "score": 0.96, "legible": true, "issues": [] },
+      "fields": [
+        { "name": "invoice_total",  "value": 8450000, "confidence": 0.98, "source": { "page": 2, "bbox": [0.62, 0.71, 0.24, 0.03] } },
+        { "name": "admission_date", "value": "2026-09-08", "confidence": 0.97, "source": { "page": 1, "bbox": [0.14, 0.22, 0.18, 0.02] } },
+        { "name": "discharge_date", "value": "2026-09-11", "confidence": 0.97, "source": { "page": 1, "bbox": [0.14, 0.25, 0.18, 0.02] } },
+        { "name": "provider_name",  "value": "RS Contoh Jakarta", "confidence": 0.95, "source": { "page": 1, "bbox": [0.10, 0.08, 0.40, 0.03] } }
+      ]
+    },
+    {
+      "document_id": "CLM-2026-004471_resume.pdf",
+      "document_type": "medical_resume",
+      "pages": 3,
+      "extraction_quality": { "score": 0.89, "legible": true, "issues": ["handwritten"] },
+      "fields": [
+        { "name": "diagnosis_text", "value": "Demam berdarah dengue", "confidence": 0.92, "source": { "page": 1, "bbox": [0.12, 0.44, 0.52, 0.03] } },
+        { "name": "icd10_code",     "value": "A90", "confidence": 0.90, "source": { "page": 1, "bbox": [0.68, 0.44, 0.08, 0.03] } }
+      ]
+    }
+  ],
+  "policy_evaluation": {
+    "benefit_code": "IP-001",
+    "rules": [
+      {
+        "rule_id": "HEALTH-STATUS-001",
+        "description": "Peserta berstatus aktif pada tanggal pelayanan.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Health Pasal 4", "text": "Pada tanggal pelayanan, peserta harus berstatus aktif dan termasuk dalam daftar peserta yang dijamin." },
+        "evidence": [ { "document_id": "CLM-2026-004471_invoice.pdf", "page": 1, "note": "Tanggal masuk 2026-09-08 berada di dalam periode pertanggungan." } ],
+        "evaluated_at": "2026-09-22T08:14:31+07:00"
+      },
+      {
+        "rule_id": "HEALTH-PERIOD-003",
+        "description": "Tanggal pelayanan berada dalam periode pertanggungan.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Health Pasal 3", "text": "Klaim dengan tanggal pelayanan di luar periode pertanggungan tidak dijamin, kecuali terdapat ketentuan khusus." },
+        "evidence": [ { "document_id": "CLM-2026-004471_invoice.pdf", "page": 1 } ],
+        "evaluated_at": "2026-09-22T08:14:31+07:00"
+      },
+      {
+        "rule_id": "HEALTH-WAIT-004",
+        "description": "Masa tunggu 30 hari sudah terlewati.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Health Pasal 9" },
+        "evidence": [],
+        "evaluated_at": "2026-09-22T08:14:32+07:00"
+      },
+      {
+        "rule_id": "HEALTH-BENEFIT-005",
+        "description": "Rawat inap termasuk manfaat yang dijamin di Schedule of Benefits.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Health Pasal 5" },
+        "evidence": [ { "document_id": "CLM-2026-004471_resume.pdf", "page": 1 } ],
+        "evaluated_at": "2026-09-22T08:14:32+07:00"
+      },
+      {
+        "rule_id": "HEALTH-EXCL-012",
+        "description": "Diagnosis tidak termasuk dalam daftar pengecualian polis.",
+        "verdict": "pass",
+        "source_clause": { "reference": "TC Health Pasal 12" },
+        "evidence": [ { "document_id": "CLM-2026-004471_resume.pdf", "page": 1, "note": "ICD-10 A90 tidak ada dalam daftar pengecualian." } ],
+        "evaluated_at": "2026-09-22T08:14:33+07:00"
+      },
+      {
+        "rule_id": "HEALTH-PEC-013",
+        "description": "Tidak terindikasi pre-existing condition.",
+        "verdict": "not_applicable",
+        "source_clause": { "reference": "TC Health Pasal 1 angka 6" },
+        "evidence": [],
+        "evaluated_at": "2026-09-22T08:14:33+07:00"
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "approve",
+    "confidence": 0.94,
+    "reasons": [
+      { "rule_id": "HEALTH-BENEFIT-005", "summary": "Rawat inap dijamin dan seluruh syarat kepesertaan terpenuhi." },
+      { "rule_id": "HEALTH-EXCL-012",    "summary": "Diagnosis tidak masuk pengecualian." }
+    ],
+    "amount": {
+      "currency": "IDR",
+      "billed": 8450000,
+      "not_covered": 0,
+      "deductible": 1000000,
+      "copay": 745000,
+      "payable": 6705000,
+      "calculation_note": "Tagihan 8.450.000 dikurangi deductible 1.000.000, sisanya 7.450.000 dikenakan co-pay 10 persen sebesar 745.000."
+    },
+    "human_review": { "required": false }
+  },
+  "audit": {
+    "received_at": "2026-09-22T08:14:02+07:00",
+    "completed_at": "2026-09-22T08:14:35+07:00",
+    "processing_seconds": 33.4,
+    "model_reference": "ok-claim-health-2026.09",
+    "input_digest": "sha256:6b6f2c1d9a4e08f7c3b25d1ea7c40f83b9d6e25a1f0c47b8e93d5a2c6f18b40d"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-22T08:14:36+07:00",
+    "log_retained": "processing_id, timestamp, jumlah halaman, status. Tanpa isi medis dan tanpa data pribadi."
+  }
+}

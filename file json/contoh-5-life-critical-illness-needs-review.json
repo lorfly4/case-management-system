@@ -1,0 +1,350 @@
+{
+  "schema_version": "0.2",
+  "processing_id": "OK-20260924-000203",
+  "request_ref": {
+    "tpa_claim_id": "CLM-2026-005117",
+    "policy_id": "POL-LIFE-0588",
+    "member_id": "MBR-4120",
+    "product_code": "LIFE-CI-01",
+    "received_at": "2026-09-24T10:10:00+07:00"
+  },
+  "line_of_business": "life",
+  "claim_type": "critical_illness",
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "1.5.0",
+    "ruleset_version": "TC-LIFE-v1.0",
+    "processing_region": "asia-southeast2 (Jakarta)"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+      "document_type": "claim_form",
+      "pages": 3,
+      "extraction_quality": {
+        "score": 0.94,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-2026-005117_hasil_pa.pdf",
+      "document_type": "pathology_report",
+      "pages": 2,
+      "extraction_quality": {
+        "score": 0.93,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-2026-005117_surat_dokter.pdf",
+      "document_type": "doctor_statement",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.86,
+        "legible": true,
+        "issues": [
+          "handwritten"
+        ]
+      }
+    }
+  ],
+  "extracted_data": {
+    "policy_info": {
+      "policy_number": {
+        "value": "POL-LIFE-0588",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "policyholder_name": {
+        "value": "Dewi Lestari",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "policy_effective_date": {
+        "value": "2026-02-01",
+        "origin": "tpa_input"
+      },
+      "sum_assured": {
+        "value": 150000000,
+        "origin": "tpa_input"
+      },
+      "policy_age_months": {
+        "value": 7,
+        "origin": "derived",
+        "note": "Dari 2026-02-01 sampai tanggal diagnosis 2026-09-02"
+      },
+      "policy_status": {
+        "value": "in_force",
+        "origin": "tpa_input"
+      }
+    },
+    "insured_info": {
+      "insured_name": {
+        "value": "Dewi Lestari",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "date_of_birth": {
+        "value": "1982-06-19",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "gender": {
+        "value": "P",
+        "origin": "extracted",
+        "confidence": 0.98,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "occupation": {
+        "value": "Guru",
+        "origin": "extracted",
+        "confidence": 0.93,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      },
+      "address": {
+        "value": "Jl. Contoh Indah No. 5, Depok",
+        "origin": "extracted",
+        "confidence": 0.9,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 1
+        }
+      }
+    },
+    "claimant_info": {
+      "claimant_name": {
+        "value": "Dewi Lestari",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "relationship_to_insured": {
+        "value": "Diri sendiri",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "claim_submission_date": {
+        "value": "2026-09-18",
+        "origin": "extracted",
+        "confidence": 0.94,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 3
+        }
+      }
+    },
+    "claim_info": {
+      "event_date": {
+        "value": "2026-09-02",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-2026-005117_hasil_pa.pdf",
+          "page": 1
+        }
+      },
+      "brief_chronology": {
+        "value": "Benjolan di payudara kiri, biopsi 2 September 2026 menunjukkan karsinoma duktal invasif. Surat dokter menyebut keluhan benjolan sejak awal tahun.",
+        "origin": "extracted",
+        "confidence": 0.85,
+        "source": {
+          "document_id": "CLM-2026-005117_formulir_klaim.pdf",
+          "page": 2
+        }
+      },
+      "critical_illness": {
+        "diagnosis_text": {
+          "value": "Karsinoma duktal invasif payudara kiri",
+          "origin": "extracted",
+          "confidence": 0.94,
+          "source": {
+            "document_id": "CLM-2026-005117_hasil_pa.pdf",
+            "page": 1
+          }
+        },
+        "icd10_code": {
+          "value": "C50.9",
+          "origin": "extracted",
+          "confidence": 0.9,
+          "source": {
+            "document_id": "CLM-2026-005117_hasil_pa.pdf",
+            "page": 1
+          }
+        },
+        "ci_condition": {
+          "value": "Kanker",
+          "origin": "derived",
+          "note": "Dipetakan dari diagnosis ke daftar kondisi CI polis"
+        },
+        "diagnosis_date": {
+          "value": "2026-09-02",
+          "origin": "extracted",
+          "confidence": 0.95,
+          "source": {
+            "document_id": "CLM-2026-005117_hasil_pa.pdf",
+            "page": 1
+          }
+        },
+        "first_symptom_date": {
+          "value": "2026-01",
+          "origin": "extracted",
+          "confidence": 0.62,
+          "source": {
+            "document_id": "CLM-2026-005117_surat_dokter.pdf",
+            "page": 1
+          },
+          "raw_text": "keluhan benjolan sejak awal tahun",
+          "note": "Hanya bulan, tulisan tangan"
+        },
+        "diagnosing_doctor": {
+          "value": "dr. Contoh, Sp.B(K)Onk",
+          "origin": "extracted",
+          "confidence": 0.88,
+          "source": {
+            "document_id": "CLM-2026-005117_surat_dokter.pdf",
+            "page": 1
+          }
+        },
+        "supporting_examination": {
+          "value": "Histopatologi biopsi",
+          "origin": "extracted",
+          "confidence": 0.93,
+          "source": {
+            "document_id": "CLM-2026-005117_hasil_pa.pdf",
+            "page": 1
+          }
+        }
+      }
+    }
+  },
+  "policy_evaluation": {
+    "benefit_code": "CI-001",
+    "rules": [
+      {
+        "rule_id": "LIFE-STATUS-004",
+        "description": "Polis in force pada tanggal diagnosis.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 4"
+        },
+        "evaluated_at": "2026-09-24T10:10:31+07:00"
+      },
+      {
+        "rule_id": "LIFE-CI-DEF-030",
+        "description": "Diagnosis memenuhi definisi kanker di daftar CI.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Lampiran CI butir 1"
+        },
+        "evaluated_at": "2026-09-24T10:10:31+07:00",
+        "evidence": [
+          {
+            "document_id": "CLM-2026-005117_hasil_pa.pdf",
+            "page": 1
+          }
+        ]
+      },
+      {
+        "rule_id": "LIFE-CI-WAIT-031",
+        "description": "Diagnosis terjadi setelah masa tunggu 90 hari.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 31"
+        },
+        "evaluated_at": "2026-09-24T10:10:32+07:00"
+      },
+      {
+        "rule_id": "LIFE-PEC-013",
+        "description": "Gejala pertama tidak muncul sebelum polis berlaku.",
+        "verdict": "indeterminate",
+        "source_clause": {
+          "reference": "TC Life Pasal 13"
+        },
+        "evaluated_at": "2026-09-24T10:10:33+07:00",
+        "evidence": [
+          {
+            "document_id": "CLM-2026-005117_surat_dokter.pdf",
+            "page": 1,
+            "note": "Keluhan 'sejak awal tahun' bisa jatuh sebelum atau sesudah 2026-02-01."
+          }
+        ]
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "needs_human_review",
+    "confidence": 0.71,
+    "reasons": [
+      {
+        "rule_id": "LIFE-PEC-013",
+        "summary": "Tanggal gejala pertama tidak pasti dan berdekatan dengan tanggal mulai polis."
+      }
+    ],
+    "human_review": {
+      "required": true,
+      "triggers": [
+        "possible_pre_existing_condition",
+        "low_extraction_confidence"
+      ],
+      "notes": "Syarat CI lain terpenuhi. Perlu kepastian tanggal gejala pertama.",
+      "missing_items": [
+        "Rekam medis kunjungan pertama keluhan benjolan",
+        "Konfirmasi tertulis dokter atas tanggal gejala pertama"
+      ]
+    }
+  },
+  "report_summary": {
+    "status_label": "Needs Review",
+    "hasil_assessment": "Diagnosis kanker memenuhi definisi CI dan di luar masa tunggu. Tanggal gejala pertama belum pasti, sehingga perlu verifikasi kemungkinan pre-existing condition.",
+    "dasar_ketentuan": [
+      "TC Life Pasal 4",
+      "TC Life Pasal 13",
+      "TC Life Pasal 31",
+      "TC Life Lampiran CI butir 1"
+    ]
+  },
+  "audit": {
+    "received_at": "2026-09-24T10:10:00+07:00",
+    "completed_at": "2026-09-24T10:10:38+07:00",
+    "processing_seconds": 38.2,
+    "model_reference": "ok-claim-life-2026.09",
+    "input_digest": "sha256:7d0e4b2a9c61f38e5b7a02d4c9e18f63a5b20c7d4e9f1a8b36c5d07e2f4a9b13"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-24T10:10:38+07:00",
+    "log_retained": "processing_id, timestamp, jumlah halaman, status. Tanpa isi medis dan tanpa data pribadi."
+  }
+}

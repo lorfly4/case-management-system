@@ -171,6 +171,27 @@ const checkRole = (roles) => {
 
 // --- HELPER FUNCTIONS & PDF GENERATOR LOGIC ---
 
+const parseJsonForPdf = (value) => {
+  if (!value) return null;
+
+  try {
+    if (typeof value === "object") {
+      return value;
+    }
+
+    return JSON.parse(value);
+
+  } catch (error) {
+
+    console.error(
+      "JSON PDF parse error:",
+      error.message
+    );
+
+    return null;
+  }
+};
+
 const safeJsonParse = (value) => {
   if (!value) return null;
   if (typeof value === "object") return value;
@@ -897,38 +918,90 @@ app.get("/dashboard", checkAuth, (req, res) => {
 // --- CASES ROUTES ---
 
 app.post(
-  "/case/:id/upload-json",
+  "/case/:id/upload-json/:slot",
   checkAuth,
   upload.single("json_file"),
   (req, res) => {
+
     if (!req.file) {
-      return res.status(400).send("Silakan pilih file JSON terlebih dahulu.");
+      return res.status(400).send(
+        "Silakan pilih file JSON terlebih dahulu."
+      );
+    }
+
+    const slot = Number(req.params.slot);
+
+    if (![1, 2].includes(slot)) {
+      return res.status(400).send(
+        "Slot JSON tidak valid."
+      );
     }
 
     try {
-      const parsedJson = JSON.parse(req.file.buffer.toString("utf-8"));
-      const jsonString = JSON.stringify(parsedJson);
-      const jsonFilePath = saveJsonUploadToDisk(req.file, req.params.id);
 
-      const query =
-        "UPDATE cases SET json_data = ?, json_file_path = ? WHERE id = ?";
+      const parsedJson = JSON.parse(
+        req.file.buffer.toString("utf-8")
+      );
+
+      const jsonString = JSON.stringify(parsedJson);
+
+      const jsonFilePath = saveJsonUploadToDisk(
+        req.file,
+        `${req.params.id}_json_${slot}`
+      );
+
+      let query;
+
+      if (slot === 1) {
+
+        query = `
+          UPDATE cases
+          SET
+            json_data = ?,
+            json_file_path = ?
+          WHERE id = ?
+        `;
+
+      } else {
+
+        query = `
+          UPDATE cases
+          SET
+            json_data_2 = ?,
+            json_file_path_2 = ?
+          WHERE id = ?
+        `;
+
+      }
+
       db.query(
         query,
-        [jsonString, jsonFilePath, req.params.id],
-        (err, result) => {
-          if (err)
-            return res.status(500).send("Database error: " + err.message);
-          res.redirect(`/case/${req.params.id}`);
-        },
-      );
-    } catch (err) {
-      return res
-        .status(400)
-        .send("File yang diunggah bukan format JSON yang valid.");
-    }
-  },
-);
+        [
+          jsonString,
+          jsonFilePath,
+          req.params.id
+        ],
+        (err) => {
 
+          if (err) {
+            return res.status(500).send(
+              "Database error: " + err.message
+            );
+          }
+
+          res.redirect(`/case/${req.params.id}`);
+        }
+      );
+
+    } catch (err) {
+
+      return res.status(400).send(
+        "File yang diunggah bukan format JSON yang valid."
+      );
+
+    }
+  }
+);
 /**
  * GENERATE CASE PDF REPORT (Tabel JSON Rapi & Dynamic Footer)
  */
@@ -1022,49 +1095,88 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
       );
     doc.y = noteY + 38;
 
-    // ================= RINGKASAN DATA JSON =================
-    // Tidak ada page break paksa. Jika konten assessment sudah penuh,
-    // PDFKit akan membuat halaman baru secara natural. Ringkasan JSON
-    // langsung dilanjutkan setelah konten assessment.
-    if (caseData.json_data) {
-      try {
-        const parsedObj = resolveCaseJsonData(caseData);
-        if (parsedObj && Object.keys(parsedObj).length > 0) {
-          doc.moveDown(1);
-          doc
-            .fillColor("#0F2A4A")
-            .font("Helvetica-Bold")
-            .fontSize(14)
-            .text("RINGKASAN DATA JSON", 40, doc.y, { width: 515 });
+    // ======================================================
+// RINGKASAN DATA JSON 1
+// ======================================================
 
-          doc
-            .fillColor("#64748B")
-            .font("Helvetica")
-            .fontSize(8.5)
-            .text(
-              "Informasi substantif yang relevan untuk penelitian dan pembacaan manusia.",
-              40,
-              doc.y + 4,
-              { width: 515 },
-            );
+const json1 = parseJsonForPdf(caseData.json_data);
 
-          doc.y += 20;
-          drawJsonAsTable(doc, parsedObj, 40);
-        } else {
-          doc
-            .fillColor("#DC2626")
-            .font("Helvetica")
-            .fontSize(9)
-            .text("Data JSON tidak dapat diurai ke dalam bentuk ringkasan.", 40, doc.y);
-        }
-      } catch (e) {
-        doc
-          .fillColor("#DC2626")
-          .font("Helvetica")
-          .fontSize(9)
-          .text("Data JSON tidak dapat diurai ke dalam bentuk ringkasan.", 40, doc.y);
-      }
-    }
+if (json1 && Object.keys(json1).length > 0) {
+
+  doc.addPage();
+
+  doc
+    .fillColor("#0F2A4A")
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .text(
+      "RINGKASAN DATA JSON 1",
+      40,
+      40,
+      { width: 515 }
+    );
+
+  doc
+    .fillColor("#64748B")
+    .font("Helvetica")
+    .fontSize(8.5)
+    .text(
+      "Informasi yang berasal dari JSON pertama.",
+      40,
+      62,
+      { width: 515 }
+    );
+
+  doc.y = 85;
+
+  drawJsonAsTable(
+    doc,
+    json1,
+    40
+  );
+}
+
+
+// ======================================================
+// RINGKASAN DATA JSON 2
+// ======================================================
+
+const json2 = parseJsonForPdf(caseData.json_data_2);
+
+if (json2 && Object.keys(json2).length > 0) {
+
+  doc.addPage();
+
+  doc
+    .fillColor("#0F2A4A")
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .text(
+      "RINGKASAN DATA JSON 2",
+      40,
+      40,
+      { width: 515 }
+    );
+
+  doc
+    .fillColor("#64748B")
+    .font("Helvetica")
+    .fontSize(8.5)
+    .text(
+      "Informasi yang berasal dari JSON kedua.",
+      40,
+      62,
+      { width: 515 }
+    );
+
+  doc.y = 85;
+
+  drawJsonAsTable(
+    doc,
+    json2,
+    40
+  );
+}
 
     // Tidak menggunakan footer, nomor halaman, atau page break manual.
     // PDFKit hanya akan menambah halaman jika konten memang melewati batas halaman.
