@@ -5,13 +5,13 @@ Sistem bagi-bagi case yang merata dengan fitur monitoring, distribusi, dan track
 ## Fitur Utama
 
 ### 1. **Dashboard**
-- Menampilkan 3 kategori case (Regular, On-Desk, Reliance) dengan jumlahnya
+- Menampilkan kategori Klaim Hospital dan Non Klaim Hospital beserta jumlahnya
 - Chart Top 5 PIC dengan case yang sedang ditangani (In Progress/Unassigned)
 - Indikator case yang belum terassign
 
 ### 2. **Case Management**
 - **All Cases View**: Menampilkan semua case (User hanya bisa lihat case mereka)
-- **Category View**: Filter case berdasarkan tipe (Regular, On-Desk, Reliance)
+- **Category View**: Filter case berdasarkan Case Type klaim
 - **Case Detail**: Lihat detail case, progress, dan activity log
 - **CRUD Operations**: Buat, edit, delete case
 
@@ -148,7 +148,7 @@ distribution/
 ### cases
 - `id`: Primary Key
 - `case_number`: Unique case identifier
-- `type`: Regular Case|On-Desk Case|Reliance Case
+- `case_type`: Klaim Hospital|Non Klaim Hospital
 - `title`: Case title
 - `description`: Case description
 - `status`: Unassigned|In Progress|On Hold|Closed
@@ -247,7 +247,7 @@ distribution/
 
 ### CSV Import Failed
 - Check CSV format (headers harus: case_number,type,title,description,priority)
-- Verify tipe case (Regular Case, On-Desk Case, Reliance Case)
+- Verify `case_type` (Klaim Hospital atau Non Klaim Hospital)
 - Check case_number tidak duplikat
 
 ## Future Features

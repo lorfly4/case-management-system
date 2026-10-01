@@ -1,10 +1,11 @@
-type,title,description,priority
-Regular Case,Customer Service Complaint,Customer reported poor service delivery,High
-Regular Case,Account Issue,User unable to access account,High
-On-Desk Case,Document Review,Internal document needs approval,Medium
-On-Desk Case,Data Entry,Data entry for new client,Medium
-Reliance Case,System Maintenance,Regular system check and updates,Low
-Reliance Case,Database Backup,Scheduled database backup,Low
-Regular Case,Payment Dispute,Customer disputes transaction,High
-On-Desk Case,Report Generation,Monthly report generation,Medium
-Regular Case,Technical Support,Technical assistance needed,Medium
+case_type,title,description,priority,status
+Klaim Hospital,Klaim rawat inap demam berdarah - demo,Perawatan inap dan pemeriksaan laboratorium,High,Unassigned
+Klaim Hospital,Klaim operasi usus buntu - demo,Tindakan operasi dan rawat inap,High,Unassigned
+Klaim Hospital,Klaim persalinan - demo,Perawatan persalinan dan biaya rumah sakit,Medium,Unassigned
+Klaim Hospital,Klaim perawatan pneumonia - demo,Rawat inap dan radiologi paru,High,In Progress
+Klaim Hospital,Klaim observasi satu hari - demo,Perawatan observasi dan biaya dokter,Low,Unassigned
+Non Klaim Hospital,Klaim meninggal dunia - demo,Manfaat meninggal dunia untuk penerima manfaat,High,Unassigned
+Non Klaim Hospital,Klaim penyakit kritis - demo,Manfaat penyakit kritis berdasarkan diagnosis dokter,High,In Progress
+Non Klaim Hospital,Klaim credit life - demo,Pelunasan manfaat kredit sesuai ketentuan polis,Medium,Unassigned
+Non Klaim Hospital,Klaim kecelakaan meninggal dunia - demo,Verifikasi kejadian dan dokumen penerima manfaat,High,On Hold
+Non Klaim Hospital,Klaim penyakit kritis jantung - demo,Review manfaat untuk diagnosis penyakit jantung,Medium,Unassigned

@@ -121,43 +121,30 @@
                     </div>
                     <% } %>
 
-                    <!-- Category Summary -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h5 class="mb-3">Case Distribution by Type</h5>
+                            <h5 class="mb-3">Case Distribution by Claim Type</h5>
                         </div>
-                        <% 
-                        const categoryColors = {
-                            'Regular Case': 'primary',
-                            'On-Desk Case': 'success',
-                            'Reliance Case': 'info'
-                        };
-                        const categoryIcons = {
-                            'Regular Case': 'fa-file-alt',
-                            'On-Desk Case': 'fa-desktop',
-                            'Reliance Case': 'fa-shield-alt'
-                        };
-                        if (typeof categories !== 'undefined' && categories.length > 0) {
-                            categories.forEach(cat => { %>
-                                <div class="col-md-4 mb-3">
+                        <% const claimTypeColors = { 'Klaim Hospital': 'primary', 'Non Klaim Hospital': 'success' };
+                           const claimTypeIcons = { 'Klaim Hospital': 'fa-hospital', 'Non Klaim Hospital': 'fa-file-medical' };
+                           if (typeof claimCategories !== 'undefined' && claimCategories.length > 0) {
+                               claimCategories.forEach(cat => { %>
+                                <div class="col-md-6 mb-3">
                                     <a href="/cases/<%= encodeURIComponent(cat.type) %>" class="text-decoration-none">
-                                        <div class="card h-100 border-start border-4 border-<%= categoryColors[cat.type] || 'secondary' %>">
+                                        <div class="card h-100 border-start border-4 border-<%= claimTypeColors[cat.type] || 'secondary' %>">
                                             <div class="card-body">
                                                 <div class="row align-items-center">
                                                     <div class="col">
                                                         <h6 class="text-muted text-uppercase small fw-bold mb-1"><%= cat.type %></h6>
                                                         <h2 class="mb-0 fw-bold"><%= cat.count %></h2>
                                                     </div>
-                                                    <div class="col-auto">
-                                                        <i class="fas <%= categoryIcons[cat.type] || 'fa-folder' %> fa-2x text-<%= categoryColors[cat.type] || 'secondary' %> opacity-50"></i>
-                                                    </div>
+                                                    <div class="col-auto"><i class="fas <%= claimTypeIcons[cat.type] || 'fa-file-medical' %> fa-2x text-<%= claimTypeColors[cat.type] || 'secondary' %> opacity-50"></i></div>
                                                 </div>
                                             </div>
                                         </div>
                                     </a>
                                 </div>
-                        <% });
-                        } %>
+                        <% }); } %>
                     </div>
 
                     <!-- Charts Row -->

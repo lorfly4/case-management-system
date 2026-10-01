@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Table: cases (untuk semua case dengan 3 tipe)
 CREATE TABLE IF NOT EXISTS cases (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  type ENUM('Regular Case', 'On-Desk Case', 'Reliance Case') NOT NULL,
+  case_type ENUM('Klaim Hospital', 'Non Klaim Hospital') NOT NULL,
   title VARCHAR(255) NOT NULL,
   description LONGTEXT,
   json_data LONGTEXT,
@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS cases (
   status_claim VARCHAR(255) NULL,
   hasil_assesment VARCHAR(255) NULL,
   dasar_ketentuan TEXT NULL,
+  claim_details LONGTEXT NULL,
   status ENUM('Unassigned', 'In Progress', 'On Hold', 'Closed') NOT NULL DEFAULT 'Unassigned',
   priority ENUM('Low', 'Medium', 'High') NOT NULL DEFAULT 'Medium',
   pic_id INT,
@@ -61,6 +62,7 @@ CREATE TABLE IF NOT EXISTS case_documents (
   case_id INT NOT NULL,
   filename VARCHAR(255) NOT NULL,
   original_name VARCHAR(255) NOT NULL,
+  document_type VARCHAR(100) NULL,
   uploaded_by INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
@@ -68,7 +70,7 @@ CREATE TABLE IF NOT EXISTS case_documents (
 );
 
 -- Indexes untuk performance
-CREATE INDEX idx_cases_type ON cases(type);
+CREATE INDEX idx_cases_case_type ON cases(case_type);
 CREATE INDEX idx_cases_status ON cases(status);
 CREATE INDEX idx_cases_pic_id ON cases(pic_id);
 CREATE INDEX idx_cases_created_at ON cases(created_at);

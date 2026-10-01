@@ -147,10 +147,10 @@
                         <p class="fs-5 fw-bold mb-0">#<%= caseItem.id %></p>
                     </div>
                                 <div class="col-md-3">
-                                    <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Tipe Kasus</label>
+                                    <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Case Type</label>
                                     <p class="mb-0">
-                                        <span class="badge badge-<%= caseItem.type === 'Regular Case' ? 'primary' : (caseItem.type === 'On-Desk Case' ? 'success' : 'info') %> px-3 py-2">
-                                            <i class="fas fa-tag me-1"></i><%= caseItem.type %>
+                                        <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Non Klaim Hospital' ? 'success' : 'secondary') %> px-3 py-2">
+                                            <i class="fas fa-tag me-1"></i><%= caseItem.case_type || claimData?.category || 'Belum ditentukan' %>
                                         </span>
                                     </p>
                                 </div>
@@ -200,6 +200,66 @@
                                 </div>
                             </div>
 
+                            <% if (claimData && Object.keys(claimData).length) { %>
+                            <div class="border-top pt-4 mb-4">
+                                <h5 class="fw-bold mb-3">Informasi Klaim</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-3"><small class="text-muted d-block">No Klaim</small><strong><%= claimData.claim?.number || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Kategori</small><strong><%= claimData.category || caseItem.case_type || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Jenis Klaim</small><strong><%= claimData.claim?.kind || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Penyakit Kritis</small><strong><%= claimData.claim?.critical_illness || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Diagnosis Dokter</small><strong><%= claimData.claim?.diagnosis_date || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Tanggal Rawat Inap</small><strong><%= claimData.claim?.admission_date || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Tanggal Kejadian</small><strong><%= claimData.claim?.incident_date || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Meninggal</small><strong><%= caseItem.tanggal_meninggal ? new Date(caseItem.tanggal_meninggal).toLocaleDateString('id-ID') : '-' %><%= caseItem.tempat_meninggal ? ' - ' + caseItem.tempat_meninggal : '' %></strong></div>
+                                    <div class="col-md-6"><small class="text-muted d-block">Hubungan Penerima Manfaat</small><strong><%= claimData.claim?.beneficiary_relationship || '-' %></strong></div>
+                                    <div class="col-md-6"><small class="text-muted d-block">Data Penerima Manfaat</small><strong><%= claimData.claim?.beneficiary_data || '-' %></strong></div>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-4 mb-4">
+                                <h5 class="fw-bold mb-3">Polis dan Nilai Klaim</h5>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-3"><small class="text-muted d-block">Pembayar Polis</small><strong><%= claimData.policy?.payer || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Status Polis saat Klaim</small><strong><%= claimData.policy?.status_at_claim || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Manfaat yang Diklaim</small><strong><%= claimData.policy?.claimed_benefit || '-' %></strong></div>
+                                    <div class="col-md-3"><small class="text-muted d-block">Nilai Pertanggungan</small><strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.policy?.sum_insured || 0) %></strong></div>
+                                </div>
+                                <% if ((claimData.category || caseItem.case_type) === 'Klaim Hospital') { %>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-2">
+                                        <thead class="table-light"><tr><th>Komponen Biaya</th><th class="text-end">Jumlah (Rp)</th></tr></thead>
+                                        <tbody>
+                                            <% [['Kamar Rawat Inap', 'room'], ['Biaya Dokter', 'doctor'], ['Tindakan/Prosedur', 'procedure'], ['Obat-obatan', 'medicines'], ['Laboratorium', 'laboratory'], ['Radiologi', 'radiology'], ['Aneka Perawatan/Lainnya', 'other']].forEach(([label, key]) => { %>
+                                            <tr><td><%= label %></td><td class="text-end"><%= new Intl.NumberFormat('id-ID').format(claimData.hospital?.costs?.[key] || 0) %></td></tr>
+                                            <% }); %>
+                                        </tbody>
+                                        <tfoot><tr class="fw-bold"><td>Total Biaya Dijaminkan</td><td class="text-end"><%= claimData.hospital?.guaranteed_total == null ? 'Belum lengkap' : new Intl.NumberFormat('id-ID').format(claimData.hospital.guaranteed_total) %></td></tr></tfoot>
+                                    </table>
+                                </div>
+                                <p class="mb-0">Klaim yang Diajukan: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.hospital?.submitted_amount || 0) %></strong></p>
+                                <% } else if ((claimData.category || caseItem.case_type) === 'Non Klaim Hospital') { %>
+                                <div class="row g-3">
+                                    <div class="col-md-4">UP yang Diajukan: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.requested_sum_insured || 0) %></strong></div>
+                                    <div class="col-md-4">Manfaat Nominal Klaim: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.benefit_amount || 0) %></strong></div>
+                                    <div class="col-md-4">Klaim Disetujui: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.approved_amount || 0) %></strong></div>
+                                </div>
+                                <% } %>
+                            </div>
+
+                            <div class="border-top pt-4 mb-4">
+                                <h5 class="fw-bold mb-3">Verifikasi dan Keputusan</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-3">Verifikasi manfaat: <strong><%= claimData.verification?.benefit_verified ? 'Terverifikasi' : 'Belum' %></strong></div>
+                                    <div class="col-md-3">Verifikasi polis: <strong><%= claimData.verification?.policy_verified ? 'Terverifikasi' : 'Belum' %></strong></div>
+                                    <div class="col-md-3">Investigasi: <strong><%= claimData.verification?.investigation_required ? 'Diperlukan' : 'Tidak' %></strong></div>
+                                    <div class="col-md-3">Keputusan: <strong><%= claimData.verification?.decision || 'Belum diputuskan' %></strong></div>
+                                    <div class="col-12"><small class="text-muted d-block">Checklist dokumen</small><strong><%= (claimData.verification?.document_checklist || []).join(', ') || 'Belum ada checklist' %></strong></div>
+                                    <div class="col-12"><small class="text-muted d-block">Catatan Klaim Assessor</small><div style="white-space: pre-line"><%= claimData.verification?.assessor_notes || '-' %></div></div>
+                                </div>
+                            </div>
+                            <% } %>
+
                             <div class="row align-items-center mb-4">
                                 <div class="col-md-6">
                                     <p class="text-muted mb-0 small">
@@ -215,17 +275,17 @@
                                 </div>
                             </div>
 
-                            <!-- <% if (Array.isArray(documents) && documents.length > 0) { %>
+                            <% if (Array.isArray(documents) && documents.length > 0) { %>
                             <div class="card border-light bg-light mb-4">
                                 <div class="card-header bg-light">
-                                    <h5 class="mb-0"><i class="fas fa-file-pdf me-2 text-danger"></i>Dokumen PDF</h5>
+                                    <h5 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Dokumen Klaim</h5>
                                 </div>
                                 <div class="card-body">
                                     <ul class="list-group list-group-flush">
                                         <% documents.forEach(doc => { %>
                                         <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
-                                            <span><i class="fas fa-file-pdf me-2 text-danger"></i><%= doc.original_name %></span>
-                                            <a href="/uploads/case-documents/<%= doc.filename %>" target="_blank" class="btn btn-sm btn-outline-danger">
+                                            <span><i class="fas fa-file-alt me-2 text-primary"></i><strong><%= doc.document_type || 'Dokumen pendukung' %></strong>: <%= doc.original_name %></span>
+                                            <a href="/uploads/case-documents/<%= doc.filename %>" target="_blank" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-download me-1"></i>Open
                                             </a>
                                         </li>
@@ -233,7 +293,7 @@
                                     </ul>
                                 </div>
                             </div>
-                            <% } %> -->
+                            <% } %>
 
                             <div class="d-flex gap-2">
     <a href="/case/<%= caseItem.id %>/pdf" target="_blank" class="btn btn-danger btn-sm text-white">
@@ -318,16 +378,29 @@
                             <% if (role === 'admin' || role === 'spv') { %>
                             <div class="card border-light bg-light">
                                 <div class="card-header bg-light">
-                                    <h5 class="mb-0"><i class="fas fa-upload me-2 text-primary"></i>Upload PDF Dokumen</h5>
+                                    <h5 class="mb-0"><i class="fas fa-upload me-2 text-primary"></i>Upload Dokumen Klaim</h5>
                                 </div>
                                 <div class="card-body">
                                     <form method="POST" action="/case/<%= caseItem.id %>/upload-document" enctype="multipart/form-data">
-                                        <div class="input-group">
-                                            <input type="file" class="form-control" name="document" accept="application/pdf" required>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fas fa-upload me-2"></i>Upload PDF
-                                            </button>
+                                        <div class="row">
+                                            <% [
+                                                ['beneficiary_document', 'Dokumen penerima manfaat'],
+                                                ['death_document', 'Dokumen kematian'],
+                                                ['identity_document', 'Dokumen identitas'],
+                                                ['medical_document', 'Dokumen medis/laporan rumah sakit'],
+                                                ['police_document', 'Laporan kepolisian'],
+                                                ['document', 'Dokumen pendukung lainnya']
+                                            ].forEach(([name, label]) => { %>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="upload_<%= name %>"><%= label %></label>
+                                                <input type="file" class="form-control" id="upload_<%= name %>" name="<%= name %>" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+                                            </div>
+                                            <% }); %>
                                         </div>
+                                        <small class="form-text text-muted d-block mb-3">PDF/JPG/PNG, maksimal 10 MB per file</small>
+                                        <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-upload me-2"></i>Upload Dokumen
+                                            </button>
                                     </form>
                                 </div>
                             </div>

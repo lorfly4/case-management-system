@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -122,16 +122,14 @@
                                 <div class="card-header bg-light">
                                     <h5 class="mb-0">Case Form</h5>
                                 </div>
-                                <form method="POST" action="<%= caseItem ? '/case/' + caseItem.id + '/edit' : '/case/new' %>">
+                                <form method="POST" enctype="multipart/form-data" action="<%= caseItem ? '/case/' + caseItem.id + '/edit' : '/case/new' %>">
                                     <div class="card-body">
                                         <div class="form-group mb-3">
-                                            <label for="type">Case Type <span class="text-danger">*</span></label>
-                                            <select class="form-control" id="type" name="type" required>
-                                                <option value="">-- Select Type --</option>
+                                            <label for="case_type">Case Type <span class="text-danger">*</span></label>
+                                            <select class="form-control" id="case_type" name="case_type" required>
+                                                <option value="">Pilih jenis klaim</option>
                                                 <% caseTypes.forEach(t => { %>
-                                                <option value="<%= t %>" <%= caseItem && caseItem.type === t ? 'selected' : '' %>>
-                                                    <%= t %>
-                                                </option>
+                                                <option value="<%= t %>" <%= (caseItem && caseItem.case_type === t) || (!caseItem && claimData.category === t) || (caseItem && !caseItem.case_type && claimData.category === t) ? 'selected' : '' %>><%= t %></option>
                                                 <% }); %>
                                             </select>
                                         </div>
@@ -204,13 +202,13 @@
                                             <div class="col-md-6">
                                                 <div class="form-group mb-3">
                                                     <label for="jenis_claim">Jenis Claim</label>
-                                                    <input type="text" class="form-control" id="jenis_claim" name="jenis_claim" value="<%= caseItem ? (caseItem.jenis_claim || '') : '' %>" placeholder="Regular Case">
+                                                    <input type="text" class="form-control" id="jenis_claim" name="jenis_claim" value="<%= (caseItem && caseItem.case_type) || claimData.category || '' %>" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group mb-3">
                                                     <label for="up">UP</label>
-                                                    <input type="number" class="form-control" id="up" name="up" value="<%= caseItem ? (caseItem.up || '') : '' %>">
+                                                    <input type="number" min="0" step="1" class="form-control" id="up" name="up" value="<%= caseItem ? (caseItem.up || '') : '' %>">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -230,6 +228,33 @@
                                                     <label for="alamat">Alamat</label>
                                                     <textarea class="form-control" id="alamat" name="alamat" rows="2"><%= caseItem ? (caseItem.alamat || '') : '' %></textarea>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <h5 class="mb-3">Informasi Polis Tambahan</h5>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="policy_payer">Pembayar Polis</label>
+                                                <input class="form-control" id="policy_payer" name="policy_payer" value="<%= claimData.policy?.payer || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="policy_status_at_claim">Status Polis saat Klaim</label>
+                                                <select class="form-control" id="policy_status_at_claim" name="policy_status_at_claim">
+                                                    <option value="">Pilih status</option>
+                                                    <% ['Aktif', 'Tidak Aktif', 'Lapse', 'Dalam Masa Tenggang', 'Lainnya'].forEach(status => { %>
+                                                    <option value="<%= status %>" <%= claimData.policy?.status_at_claim === status ? 'selected' : '' %>><%= status %></option>
+                                                    <% }); %>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="policy_claimed_benefit">Manfaat yang Diklaim</label>
+                                                <input class="form-control" id="policy_claimed_benefit" name="policy_claimed_benefit" value="<%= claimData.policy?.claimed_benefit || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="policy_sum_insured">Nilai Pertanggungan (Rp)</label>
+                                                <input type="number" min="0" step="1" class="form-control" id="policy_sum_insured" name="policy_sum_insured" value="<%= claimData.policy?.sum_insured ?? '' %>">
                                             </div>
                                         </div>
 
@@ -271,6 +296,115 @@
 
                                         <hr class="my-4">
 
+                                        <h5 class="mb-3">Rincian Klaim</h5>
+
+                                        <div id="hospitalFields" class="border rounded p-3 mb-3">
+                                            <h6 class="font-weight-bold">Rincian Klaim Hospital</h6>
+                                            <div class="row">
+                                                <% [
+                                                    ['room', 'Kamar Rawat Inap'], ['doctor', 'Biaya Dokter'],
+                                                    ['procedure', 'Tindakan/Prosedur Medis'], ['medicines', 'Obat-obatan'],
+                                                    ['laboratory', 'Laboratorium'], ['radiology', 'Radiologi (Rontgen, CT Scan, MRI)'],
+                                                    ['other', 'Aneka Perawatan, Administrasi, dan Biaya Lainnya']
+                                                ].forEach(([key, label]) => { %>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="cost_<%= key %>"><%= label %> (Rp)</label>
+                                                    <input type="number" min="0" step="1" class="form-control hospital-cost" id="cost_<%= key %>" name="cost_<%= key %>" value="<%= claimData.hospital?.costs?.[key] ?? '' %>">
+                                                </div>
+                                                <% }); %>
+                                            </div>
+                                            <div class="row align-items-end">
+                                                <div class="col-md-6 mb-3">
+                                                    <label>Total Biaya Dijaminkan (Rp)</label>
+                                                    <output id="hospitalTotal" class="form-control bg-light"><%= claimData.hospital?.guaranteed_total ?? 'Isi seluruh rincian biaya' %></output>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="hospital_submitted_amount">Klaim yang Diajukan (Rp)</label>
+                                                    <input type="number" min="0" step="1" class="form-control" id="hospital_submitted_amount" name="hospital_submitted_amount" value="<%= claimData.hospital?.submitted_amount ?? '' %>">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="nonHospitalFields" class="border rounded p-3 mb-3">
+                                            <h6 class="font-weight-bold">Rincian Klaim Non Hospital</h6>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="non_hospital_sum_insured">Uang Pertanggungan yang Diajukan (Rp)</label>
+                                                    <input type="number" min="0" step="1" class="form-control" id="non_hospital_sum_insured" name="non_hospital_sum_insured" value="<%= claimData.non_hospital?.requested_sum_insured ?? '' %>">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="non_hospital_benefit">Manfaat Nominal Klaim (Rp)</label>
+                                                    <input type="number" min="0" step="1" class="form-control" id="non_hospital_benefit" name="non_hospital_benefit" value="<%= claimData.non_hospital?.benefit_amount ?? '' %>">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="non_hospital_approved">Klaim yang Disetujui (Rp)</label>
+                                                    <input type="number" min="0" step="1" class="form-control" id="non_hospital_approved" name="non_hospital_approved" value="<%= claimData.non_hospital?.approved_amount ?? '' %>">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <h5 class="mb-3">Data Klaim dan Penerima Manfaat</h5>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="claim_number">No Klaim</label>
+                                                <input class="form-control" id="claim_number" name="claim_number" value="<%= claimData.claim?.number || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="claim_kind">Jenis Klaim</label>
+                                                <select class="form-control" id="claim_kind" name="claim_kind">
+                                                    <option value="">Pilih jenis klaim</option>
+                                                    <% ['Klaim rawat inap', 'Klaim perawatan 1 hari', 'Klaim Meninggal Dunia', 'Klaim Penyakit Kritis', 'Credit Life', 'Claim lainnya'].forEach(kind => { %>
+                                                    <option value="<%= kind %>" <%= claimData.claim?.kind === kind ? 'selected' : '' %>><%= kind %></option>
+                                                    <% }); %>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="critical_illness">Jenis Penyakit Kritis yang Terdiagnosa</label>
+                                                <input class="form-control" id="critical_illness" name="critical_illness" value="<%= claimData.claim?.critical_illness || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="diagnosis_date">Tanggal Diagnosis Dokter</label>
+                                                <input type="date" class="form-control" id="diagnosis_date" name="diagnosis_date" value="<%= claimData.claim?.diagnosis_date || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="admission_date">Tanggal Rawat Inap</label>
+                                                <input type="date" class="form-control" id="admission_date" name="admission_date" value="<%= claimData.claim?.admission_date || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="incident_date">Tanggal Kejadian Klaim</label>
+                                                <input type="date" class="form-control" id="incident_date" name="incident_date" value="<%= claimData.claim?.incident_date || '' %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="beneficiary_relationship">Hubungan dengan Pemegang Polis</label>
+                                                <input class="form-control" id="beneficiary_relationship" name="beneficiary_relationship" value="<%= claimData.claim?.beneficiary_relationship || '' %>">
+                                            </div>
+                                            <div class="col-12 mb-3">
+                                                <label for="beneficiary_data">Data Penerima Manfaat</label>
+                                                <textarea class="form-control" id="beneficiary_data" name="beneficiary_data" rows="2"><%= claimData.claim?.beneficiary_data || '' %></textarea>
+                                            </div>
+                                        </div>
+
+                                        <h6 class="font-weight-bold mt-2">Upload Dokumen</h6>
+                                        <div class="row">
+                                            <% [
+                                                ['beneficiary_document', 'Data atau Dokumen Penerima Manfaat'],
+                                                ['death_document', 'Dokumen Kematian'],
+                                                ['identity_document', 'Dokumen Identitas'],
+                                                ['medical_document', 'Dokumen Medis/Laporan Rumah Sakit'],
+                                                ['police_document', 'Laporan Kepolisian (Jika Diperlukan)']
+                                            ].forEach(([name, label]) => { %>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="<%= name %>"><%= label %></label>
+                                                <input type="file" class="form-control-file d-block" id="<%= name %>" name="<%= name %>" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+                                                <small class="form-text text-muted">PDF/JPG/PNG, maksimal 10 MB per file</small>
+                                            </div>
+                                            <% }); %>
+                                        </div>
+
+                                        <hr class="my-4">
+
                                         <h5 class="mb-3">Claim Assesment</h5>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -290,6 +424,56 @@
                                                     <label for="dasar_ketentuan">Dasar Ketentuan</label>
                                                     <textarea class="form-control" id="dasar_ketentuan" name="dasar_ketentuan" rows="2"><%= caseItem ? (caseItem.dasar_ketentuan || '') : '' %></textarea>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <h5 class="mb-3">Dokumen dan Verifikasi</h5>
+                                        <div class="mb-3">
+                                            <label class="d-block">Checklist Kelengkapan Dokumen</label>
+                                            <% [
+                                                ['beneficiary', 'Dokumen penerima manfaat'], ['death', 'Dokumen kematian'],
+                                                ['identity', 'Dokumen identitas'], ['medical', 'Dokumen medis'],
+                                                ['police', 'Laporan kepolisian']
+                                            ].forEach(([value, label]) => { %>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="check_<%= value %>" name="document_checklist" value="<%= value %>" <%= (claimData.verification?.document_checklist || []).includes(value) ? 'checked' : '' %>>
+                                                <label class="form-check-label" for="check_<%= value %>"><%= label %></label>
+                                            </div>
+                                            <% }); %>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="benefit_verified" name="benefit_verified" <%= claimData.verification?.benefit_verified ? 'checked' : '' %>>
+                                                    <label class="form-check-label" for="benefit_verified">Verifikasi manfaat</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="policy_verified" name="policy_verified" <%= claimData.verification?.policy_verified ? 'checked' : '' %>>
+                                                    <label class="form-check-label" for="policy_verified">Verifikasi polis</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="investigation_required" name="investigation_required" <%= claimData.verification?.investigation_required ? 'checked' : '' %>>
+                                                    <label class="form-check-label" for="investigation_required">Investigasi diperlukan</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="claim_decision">Keputusan Klaim</label>
+                                                <select class="form-control" id="claim_decision" name="claim_decision">
+                                                    <option value="">Belum diputuskan</option>
+                                                    <% ['Disetujui', 'Disetujui Sebagian', 'Ditolak', 'Dalam Investigasi', 'Menunggu Dokumen'].forEach(decision => { %>
+                                                    <option value="<%= decision %>" <%= claimData.verification?.decision === decision ? 'selected' : '' %>><%= decision %></option>
+                                                    <% }); %>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 mb-3">
+                                                <label for="assessor_notes">Catatan dari Klaim Assessor</label>
+                                                <textarea class="form-control" id="assessor_notes" name="assessor_notes" rows="3"><%= claimData.verification?.assessor_notes || '' %></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -314,7 +498,7 @@
                                 </div>
                                 <div class="card-body text-sm">
                                     <p><strong>Case Number:</strong> Unique identifier for the case</p>
-                                    <p><strong>Type:</strong> Category of the case (Regular, On-Desk, or Reliance)</p>
+                                    <p><strong>Case Type:</strong> Klaim Hospital atau Non Klaim Hospital</p>
                                     <p><strong>Priority:</strong> Urgency level (Low, Medium, High)</p>
                                     <p><strong>Status:</strong> Current stage of the case</p>
                                     <div class="alert alert-info alert-sm" role="alert">
@@ -340,5 +524,65 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
+    <script>
+        (() => {
+            const category = document.getElementById('case_type');
+            const claimKind = document.getElementById('claim_kind');
+            const policyClaimType = document.getElementById('jenis_claim');
+            const hospitalFields = document.getElementById('hospitalFields');
+            const nonHospitalFields = document.getElementById('nonHospitalFields');
+            const totalOutput = document.getElementById('hospitalTotal');
+            const hospitalCosts = [...document.querySelectorAll('.hospital-cost')];
+            const nonHospitalAmounts = [...nonHospitalFields.querySelectorAll('input')];
+            const formatRupiah = (amount) => new Intl.NumberFormat('id-ID').format(amount);
+            const hospitalType = 'Klaim Hospital';
+            const nonHospitalType = 'Non Klaim Hospital';
+            const claimKindCaseType = {
+                'Klaim rawat inap': hospitalType,
+                'Klaim perawatan 1 hari': hospitalType,
+                'Klaim Meninggal Dunia': nonHospitalType,
+                'Klaim Penyakit Kritis': nonHospitalType,
+                'Credit Life': nonHospitalType
+            };
+
+            const updateClaimFields = () => {
+                const isHospital = category.value === hospitalType;
+                const isNonHospital = category.value === nonHospitalType;
+                hospitalFields.hidden = !isHospital;
+                nonHospitalFields.hidden = !isNonHospital;
+                hospitalCosts.forEach((input) => {
+                    input.disabled = !isHospital;
+                    input.required = isHospital;
+                });
+                nonHospitalAmounts.forEach((input) => {
+                    input.disabled = !isNonHospital;
+                });
+                policyClaimType.value = category.value;
+            };
+            const updateHospitalTotal = () => {
+                const complete = hospitalCosts.every((input) => input.value !== '');
+                const total = hospitalCosts.reduce((sum, input) => sum + (Number(input.value) || 0), 0);
+                const display = complete ? formatRupiah(total) : 'Isi seluruh rincian biaya';
+                totalOutput.value = display;
+                totalOutput.textContent = display;
+            };
+
+            category.addEventListener('change', () => {
+                if (claimKindCaseType[claimKind.value] && claimKindCaseType[claimKind.value] !== category.value) {
+                    claimKind.value = '';
+                }
+                updateClaimFields();
+            });
+            claimKind.addEventListener('change', () => {
+                if (claimKindCaseType[claimKind.value]) category.value = claimKindCaseType[claimKind.value];
+                updateClaimFields();
+            });
+            hospitalCosts.forEach((input) => {
+                input.addEventListener('input', updateHospitalTotal);
+            });
+            updateClaimFields();
+            updateHospitalTotal();
+        })();
+    </script>
 </body>
 </html>

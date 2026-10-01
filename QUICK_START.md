@@ -85,8 +85,8 @@ Server akan berjalan di: **http://localhost:3000**
 ## Step 8: Monitor Dashboard
 
 **Go to Dashboard:**
-- Lihat 3 kategori case dan jumlahnya
-- Klik kategori untuk filter by type
+- Lihat kategori Klaim Hospital dan Non Klaim Hospital beserta jumlahnya
+- Klik kategori untuk memfilter case
 - Lihat chart Top 5 PIC dengan active cases
 
 ---
@@ -96,10 +96,10 @@ Server akan berjalan di: **http://localhost:3000**
 File: `sample_cases.csv`
 
 ```
-case_number,type,title,description,priority
-CS-001,Regular Case,Customer complaint,Customer reported issue,High
-CS-002,On-Desk Case,Document review,Need approval,Medium
-CS-003,Reliance Case,System maintenance,Regular check,Low
+case_type,title,description,priority,status
+Klaim Hospital,Klaim rawat inap demam berdarah,Perawatan inap dan pemeriksaan laboratorium,High,Unassigned
+Non Klaim Hospital,Klaim meninggal dunia,Manfaat untuk penerima manfaat,High,Unassigned
+Klaim Hospital,Klaim operasi usus buntu,Tindakan operasi dan rawat inap,Medium,In Progress
 ```
 
 **Import steps:**

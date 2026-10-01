@@ -143,7 +143,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Case ID</th>
-                                            <th>Type</th>
+                                            <th>Case Type</th>
                                             <th>Status</th>
                                             <th>PIC</th>
                                             <th>Created Date</th>
@@ -156,8 +156,8 @@
                                             <tr>
                                                 <td data-order="<%= caseItem.id %>"><strong>#<%= caseItem.id %></strong></td>
                                                 <td>
-                                                    <span class="badge badge-<%= caseItem.type === 'Regular Case' ? 'primary' : (caseItem.type === 'On-Desk Case' ? 'success' : 'info') %>">
-                                                        <%= caseItem.type %>
+                                                    <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Non Klaim Hospital' ? 'success' : 'secondary') %>">
+                                                        <%= caseItem.case_type || 'Belum ditentukan' %>
                                                     </span>
                                                 </td>
                                                 <td>

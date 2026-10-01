@@ -25,6 +25,12 @@ const {
   resolveCaseJsonData,
   saveJsonUploadToDisk,
 } = require("./lib/case_json_utils");
+const {
+  buildClaimDetails,
+  parseClaimDetails,
+  buildPdfClaimSections,
+  CASE_TYPES,
+} = require("./lib/claim_details");
 
 const app = express();
 
@@ -104,6 +110,70 @@ const ensureCasesJsonFilePathColumn = () => {
   });
 };
 
+const ensureClaimDetailsColumn = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SHOW COLUMNS FROM cases LIKE "claim_details"', (err, results) => {
+      if (err) return reject(err);
+      if (results.length > 0) return resolve();
+      db.query(
+        "ALTER TABLE cases ADD COLUMN claim_details LONGTEXT NULL AFTER dasar_ketentuan",
+        (alterErr) => (alterErr ? reject(alterErr) : resolve()),
+      );
+    });
+  });
+};
+
+const ensureClaimCaseTypeColumn = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SHOW COLUMNS FROM cases LIKE "case_type"', (err, results) => {
+      if (err) return reject(err);
+      if (results.length > 0) return resolve();
+      db.query(
+        "ALTER TABLE cases ADD COLUMN case_type ENUM('Klaim Hospital', 'Non Klaim Hospital') NULL AFTER id",
+        (alterErr) => (alterErr ? reject(alterErr) : resolve()),
+      );
+    });
+  });
+};
+
+const ensureLegacyTypeRemoved = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SHOW COLUMNS FROM cases LIKE "type"', (err, results) => {
+      if (err) return reject(err);
+      if (results.length === 0) return resolve();
+      db.query(
+        "ALTER TABLE cases DROP COLUMN type",
+        (alterErr) => (alterErr ? reject(alterErr) : resolve()),
+      );
+    });
+  });
+};
+
+const ensureCaseTypeIndex = () => {
+  return new Promise((resolve, reject) => {
+    db.query("SHOW INDEX FROM cases WHERE Key_name = 'idx_cases_case_type'", (err, results) => {
+      if (err) return reject(err);
+      if (results.length > 0) return resolve();
+      db.query("CREATE INDEX idx_cases_case_type ON cases(case_type)", (indexErr) =>
+        indexErr ? reject(indexErr) : resolve(),
+      );
+    });
+  });
+};
+
+const ensureCaseDocumentTypeColumn = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SHOW COLUMNS FROM case_documents LIKE "document_type"', (err, results) => {
+      if (err) return reject(err);
+      if (results.length > 0) return resolve();
+      db.query(
+        "ALTER TABLE case_documents ADD COLUMN document_type VARCHAR(100) NULL AFTER original_name",
+        (alterErr) => (alterErr ? reject(alterErr) : resolve()),
+      );
+    });
+  });
+};
+
 db.connect((err) => {
   if (err) {
     console.error("Database connection failed:", err);
@@ -111,9 +181,13 @@ db.connect((err) => {
   } else {
     console.log("MySQL Connected...");
     Promise.all([
-      ensureCaseDocumentsTable(),
       ensureCasesJsonColumn(),
       ensureCasesJsonFilePathColumn(),
+      ensureClaimDetailsColumn(),
+      ensureClaimCaseTypeColumn()
+        .then(ensureLegacyTypeRemoved)
+        .then(ensureCaseTypeIndex),
+      ensureCaseDocumentsTable().then(ensureCaseDocumentTypeColumn),
     ])
       .then(() => console.log("Database schema ready"))
       .catch((migrationErr) =>
@@ -197,6 +271,34 @@ const safeJsonParse = (value) => {
   } catch (error) {
     return null;
   }
+};
+
+const claimDocumentFields = [
+  { name: "beneficiary_document", type: "Data penerima manfaat" },
+  { name: "death_document", type: "Dokumen kematian" },
+  { name: "identity_document", type: "Dokumen identitas" },
+  { name: "medical_document", type: "Dokumen medis" },
+  { name: "police_document", type: "Laporan kepolisian" },
+];
+
+const persistClaimDocuments = (caseId, files, userId) => {
+  const documents = claimDocumentFields.flatMap(({ name, type }) =>
+    (files?.[name] || []).map((file) => ({ file, type })),
+  );
+  if (documents.length === 0) return Promise.resolve();
+
+  return Promise.all(
+    documents.map(
+      ({ file, type }) =>
+        new Promise((resolve, reject) => {
+          db.query(
+            "INSERT INTO case_documents (case_id, filename, original_name, document_type, uploaded_by) VALUES (?, ?, ?, ?, ?)",
+            [caseId, file.filename, file.originalname, type, userId],
+            (err) => (err ? reject(err) : resolve()),
+          );
+        }),
+    ),
+  );
 };
 
 const safeNumber = (value, fallback = 0) => {
@@ -358,7 +460,11 @@ const normalizeClaimAssessmentData = (caseData) => {
       },
       {
         label: "Jenis Claim",
-        value: pick(polis.jenis_claim, caseData.jenis_claim, caseData.type),
+        value: pick(
+          polis.jenis_claim,
+          caseData.jenis_claim,
+          caseData.case_type,
+        ),
       },
       {
         label: "UP",
@@ -1471,10 +1577,11 @@ app.get("/logout", (req, res) => {
 // --- DASHBOARD ROUTE ---
 
 app.get("/dashboard", checkAuth, (req, res) => {
-  const queryCategory = `
-        SELECT type, COUNT(*) as count 
-        FROM cases 
-        GROUP BY type`;
+    const queryClaimCategory = `
+      SELECT case_type as type, COUNT(*) as count
+      FROM cases
+      WHERE case_type IS NOT NULL
+      GROUP BY case_type`;
 
   const queryTopPIC = `
         SELECT u.id, u.username, COUNT(c.id) as load_count 
@@ -1487,14 +1594,14 @@ app.get("/dashboard", checkAuth, (req, res) => {
 
   const queryUnassigned = `SELECT COUNT(*) as count FROM cases WHERE status = 'Unassigned'`;
 
-  db.query(queryCategory, (err, catResults) => {
+  db.query(queryClaimCategory, (err, claimCategoryResults) => {
     if (err) throw err;
     db.query(queryTopPIC, (err, picResults) => {
       if (err) throw err;
       db.query(queryUnassigned, (err, unassignedResults) => {
         if (err) throw err;
         res.render("pages/dashboard_new", {
-          categories: catResults,
+          claimCategories: claimCategoryResults,
           topPIC: picResults,
           unassigned: unassignedResults[0].count,
           user: req.session.user,
@@ -1572,7 +1679,9 @@ app.post(
  */
 app.get("/case/:id/pdf", checkAuth, (req, res) => {
   const query = `
-        SELECT c.*, u.username as pic_name 
+        SELECT c.*, u.username as pic_name,
+          (SELECT GROUP_CONCAT(CONCAT(COALESCE(d.document_type, 'Dokumen pendukung'), '||', d.original_name) SEPARATOR '\\n')
+           FROM case_documents d WHERE d.case_id = c.id) AS claim_documents
         FROM cases c 
         LEFT JOIN users u ON c.pic_id = u.id
         WHERE c.id = ?`;
@@ -1587,6 +1696,22 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
     }
 
     const caseData = results[0];
+    const uploadedDocuments = caseData.claim_documents
+      ? caseData.claim_documents.split("\n").map((entry) => {
+          const separatorIndex = entry.indexOf("||");
+          return {
+            document_type:
+              separatorIndex === -1 ? "Dokumen pendukung" : entry.slice(0, separatorIndex),
+            original_name:
+              separatorIndex === -1 ? entry : entry.slice(separatorIndex + 2),
+          };
+        })
+      : [];
+    const claimSections = buildPdfClaimSections(
+      caseData,
+      caseData.claim_details,
+      uploadedDocuments,
+    );
 
     /*
      * =========================================================
@@ -1695,6 +1820,27 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
         maxRowHeight: 34,
       },
     );
+
+    doc.addPage();
+    doc
+      .fillColor("#0F2A4A")
+      .font("Helvetica-Bold")
+      .fontSize(14)
+      .text("RINCIAN KLAIM DAN VERIFIKASI", 40, 40, { width: 515 });
+    doc.y = 72;
+
+    claimSections.forEach((section) => {
+      const rows = section.rows.map((row) => ({
+        label: row.label,
+        value:
+          typeof row.value === "number" ? formatCurrency(row.value) : row.value,
+      }));
+      drawTableSection(doc, section.title, rows, {
+        startX: 40,
+        col1Width: 175,
+        col2Width: 340,
+      });
+    });
 
     // =========================================================
     // CATATAN
@@ -1818,12 +1964,13 @@ app.get("/all-cases", checkAuth, (req, res) => {
  */
 app.get("/cases/:type", checkAuth, (req, res) => {
   const { type } = req.params;
+  if (!CASE_TYPES.includes(type)) return res.status(404).send("Case type not found");
 
   const query = `
         SELECT c.*, u.username as pic_name 
         FROM cases c 
         LEFT JOIN users u ON c.pic_id = u.id
-        WHERE c.type = ?
+        WHERE c.case_type = ?
         ORDER BY c.id DESC`;
 
   db.query(query, [type], (err, results) => {
@@ -1847,19 +1994,25 @@ app.get("/case/new", checkAuth, (req, res) => {
 
   res.render("pages/case_form_new", {
     caseItem: null,
-    caseTypes: ["Regular Case", "On-Desk Case", "Reliance Case"],
+    claimData: {},
+    caseTypes: CASE_TYPES,
     user: req.session.user,
     role: req.session.role,
   });
 });
 
-app.post("/case/new", checkAuth, (req, res) => {
+const requireCaseCreator = (req, res, next) => {
   if (!canCreateCase(req.session.role)) {
     return res.status(403).send("Unauthorized Access");
   }
+  next();
+};
 
+const receiveClaimDocuments = (req, res, next) =>
+  caseDocumentUpload.fields(claimDocumentFields.map(({ name }) => ({ name, maxCount: 1 })))(req, res, next);
+
+app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req, res) => {
   const {
-    type,
     title,
     description,
     priority,
@@ -1881,12 +2034,24 @@ app.post("/case/new", checkAuth, (req, res) => {
     hasil_assesment,
     dasar_ketentuan,
   } = req.body;
+  const claimData = buildClaimDetails(req.body);
+  if (!CASE_TYPES.includes(req.body.case_type)) {
+    Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+    return res.status(400).render("pages/case_form_new", {
+      message: "Pilih Case Type Klaim Hospital atau Non Klaim Hospital.",
+      caseItem: null,
+      claimData,
+      caseTypes: CASE_TYPES,
+      user: req.session.user,
+      role: req.session.role,
+    });
+  }
 
   const sql = "INSERT INTO cases SET ?";
   db.query(
     sql,
     {
-      type: type,
+      case_type: claimData.category,
       title: title,
       description: description,
       priority: priority,
@@ -1894,7 +2059,7 @@ app.post("/case/new", checkAuth, (req, res) => {
       pemegang_polis: pemegang_polis || null,
       tertanggung: tertanggung || null,
       tanggal_issued_polis: tanggal_issued_polis || null,
-      jenis_claim: jenis_claim || null,
+      jenis_claim: claimData.category,
       up: up || null,
       usia_polis: usia_polis || null,
       pekerjaan_tertanggung: pekerjaan_tertanggung || null,
@@ -1907,19 +2072,26 @@ app.post("/case/new", checkAuth, (req, res) => {
       status_claim: status_claim || "Unassigned",
       hasil_assesment: hasil_assesment || null,
       dasar_ketentuan: dasar_ketentuan || null,
+      claim_details: JSON.stringify(claimData),
       status: "Unassigned",
     },
     (err, result) => {
       if (err) {
+        Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
         return res.render("pages/case_form_new", {
           message: "Error creating case: " + err.message,
           caseItem: null,
-          caseTypes: ["Regular Case", "On-Desk Case", "Reliance Case"],
+          claimData,
+          caseTypes: CASE_TYPES,
           user: req.session.user,
           role: req.session.role,
         });
       }
-      res.redirect("/all-cases");
+      persistClaimDocuments(result.insertId, req.files, req.session.user_id)
+        .then(() => res.redirect(`/case/${result.insertId}`))
+        .catch((documentErr) =>
+          res.status(500).send("Case created, but a document could not be saved: " + documentErr.message),
+        );
     },
   );
 });
@@ -1938,18 +2110,15 @@ app.get("/case/:id/edit", checkAuth, (req, res) => {
     if (results.length === 0) return res.status(404).send("Case not found");
     res.render("pages/case_form_new", {
       caseItem: results[0],
-      caseTypes: ["Regular Case", "On-Desk Case", "Reliance Case"],
+      claimData: parseClaimDetails(results[0].claim_details),
+      caseTypes: CASE_TYPES,
       user: req.session.user,
       role: req.session.role,
     });
   });
 });
 
-app.post("/case/:id/edit", checkAuth, (req, res) => {
-  if (!canCreateCase(req.session.role)) {
-    return res.status(403).send("Unauthorized Access");
-  }
-
+app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments, (req, res) => {
   const {
     title,
     description,
@@ -1973,15 +2142,21 @@ app.post("/case/:id/edit", checkAuth, (req, res) => {
     hasil_assesment,
     dasar_ketentuan,
   } = req.body;
+  const claimData = buildClaimDetails(req.body);
+  if (!CASE_TYPES.includes(req.body.case_type)) {
+    Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+    return res.status(400).send("Pilih Case Type Klaim Hospital atau Non Klaim Hospital.");
+  }
 
-  const sql = `UPDATE cases SET title = ?, description = ?, priority = ?, status = ?,
+  const sql = `UPDATE cases SET case_type = ?, title = ?, description = ?, priority = ?, status = ?,
         no_polis = ?, pemegang_polis = ?, tertanggung = ?, tanggal_issued_polis = ?, jenis_claim = ?, up = ?,
         usia_polis = ?, pekerjaan_tertanggung = ?, alamat = ?, tanggal_meninggal = ?, penyebab_meninggal = ?,
         tempat_meninggal = ?, pengaju_klaim = ?, kronologi_singkat = ?, status_claim = ?, hasil_assesment = ?,
-        dasar_ketentuan = ? WHERE id = ?`;
+        dasar_ketentuan = ?, claim_details = ? WHERE id = ?`;
   db.query(
     sql,
     [
+      claimData.category,
       title,
       description,
       priority,
@@ -1990,7 +2165,7 @@ app.post("/case/:id/edit", checkAuth, (req, res) => {
       pemegang_polis || null,
       tertanggung || null,
       tanggal_issued_polis || null,
-      jenis_claim || null,
+      claimData.category,
       up || null,
       usia_polis || null,
       pekerjaan_tertanggung || null,
@@ -2003,11 +2178,19 @@ app.post("/case/:id/edit", checkAuth, (req, res) => {
       status_claim || status || null,
       hasil_assesment || null,
       dasar_ketentuan || null,
+      JSON.stringify(claimData),
       req.params.id,
     ],
     (err, result) => {
-      if (err) throw err;
-      res.redirect(`/case/${req.params.id}`);
+      if (err) {
+        Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+        return res.status(500).send("Error updating case: " + err.message);
+      }
+      persistClaimDocuments(req.params.id, req.files, req.session.user_id)
+        .then(() => res.redirect(`/case/${req.params.id}`))
+        .catch((documentErr) =>
+          res.status(500).send("Case updated, but a document could not be saved: " + documentErr.message),
+        );
     },
   );
 });
@@ -2050,6 +2233,7 @@ app.get("/case/:id", checkAuth, (req, res) => {
         if (docErr.code === "ER_NO_SUCH_TABLE") {
           return res.render("pages/case_detail_new", {
             caseItem: caseData,
+            claimData: parseClaimDetails(caseData.claim_details),
             documents: [],
             user: req.session.user,
             role: req.session.role,
@@ -2061,6 +2245,7 @@ app.get("/case/:id", checkAuth, (req, res) => {
 
       res.render("pages/case_detail_new", {
         caseItem: caseData,
+        claimData: parseClaimDetails(caseData.claim_details),
         documents: documentResults,
         user: req.session.user,
         role: req.session.role,
@@ -2278,20 +2463,24 @@ app.post("/user/:id/delete", checkAuth, checkRole(["admin"]), (req, res) => {
 const caseDocumentStorage = multer.diskStorage({
   destination: path.join(__dirname, "uploads", "case-documents"),
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
+    cb(null, `${Date.now()}-${path.basename(file.originalname).replace(/\s+/g, "-")}`);
   },
 });
 
 const caseDocumentUpload = multer({
+  limits: { fileSize: 10 * 1024 * 1024, files: 6 },
   storage: caseDocumentStorage,
   fileFilter: (req, file, cb) => {
-    const isPdf =
-      file.mimetype === "application/pdf" ||
-      file.originalname.toLowerCase().endsWith(".pdf");
-    if (isPdf) {
+    const isAllowedMime = ["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype);
+    const isAllowedExtension = [".pdf", ".jpg", ".jpeg", ".png"].includes(
+      path.extname(file.originalname).toLowerCase(),
+    );
+    const isAllowed =
+      isAllowedMime && isAllowedExtension;
+    if (isAllowed) {
       cb(null, true);
     } else {
-      cb(new Error("Only PDF files allowed for case document upload"));
+      cb(new Error("Dokumen harus berupa PDF, JPG, atau PNG"));
     }
   },
 });
@@ -2396,10 +2585,10 @@ app.post("/import-cases", checkAuth, (req, res) => {
       rows = await parseImportRows(filePath);
 
       const sql =
-        "INSERT INTO cases (type, title, description, priority, status) VALUES (?, ?, ?, ?, ?)";
+        "INSERT INTO cases (case_type, title, description, priority, status) VALUES (?, ?, ?, ?, ?)";
 
       for (const row of rows) {
-        const type = (row.type || row.Type || "").toString().trim();
+        const caseType = (row.case_type || row["Case Type"] || "").toString().trim();
         const title = (row.title || row.Title || "").toString().trim();
         const description = (row.description || row.Description || "")
           .toString()
@@ -2411,16 +2600,11 @@ app.post("/import-cases", checkAuth, (req, res) => {
           .toString()
           .trim();
 
-        if (!type || !title) {
+        if (!CASE_TYPES.includes(caseType) || !title) {
           errorCount++;
           continue;
         }
 
-        const validType = [
-          "Regular Case",
-          "On-Desk Case",
-          "Reliance Case",
-        ].includes(type);
         const validPriority = ["Low", "Medium", "High"].includes(priority);
         const validStatus = [
           "Unassigned",
@@ -2429,7 +2613,7 @@ app.post("/import-cases", checkAuth, (req, res) => {
           "Closed",
         ].includes(status);
 
-        if (!validType || !validPriority || !validStatus) {
+        if (!validPriority || !validStatus) {
           errorCount++;
           continue;
         }
@@ -2437,7 +2621,7 @@ app.post("/import-cases", checkAuth, (req, res) => {
         const insertResult = await new Promise((resolve, reject) => {
           db.query(
             sql,
-            [type, title, description || "", priority, status],
+            [caseType, title, description || "", priority, status],
             (err, result) => {
               if (err) reject(err);
               else resolve(result);
@@ -2479,36 +2663,45 @@ app.post("/case/:id/upload-document", checkAuth, (req, res) => {
     return res.status(403).send("Unauthorized Access");
   }
 
-  caseDocumentUpload.single("document")(req, res, (err) => {
+  const documentFields = [
+    { name: "document", maxCount: 1 },
+    ...claimDocumentFields.map(({ name }) => ({ name, maxCount: 1 })),
+  ];
+  caseDocumentUpload.fields(documentFields)(req, res, (err) => {
     if (err) {
-      return res.status(400).send("Error uploading PDF: " + err.message);
+      return res.status(400).send("Error uploading document: " + err.message);
     }
 
-    if (!req.file) {
-      return res.status(400).send("No PDF file uploaded");
-    }
-
-    const sql =
-      "INSERT INTO case_documents (case_id, filename, original_name, uploaded_by) VALUES (?, ?, ?, ?)";
-    db.query(
-      sql,
-      [
-        req.params.id,
-        req.file.filename,
-        req.file.originalname,
-        req.session.user_id,
-      ],
-      (uploadErr) => {
-        if (uploadErr) {
-          fs.unlinkSync(req.file.path);
-          return res
-            .status(500)
-            .send("Failed to save document: " + uploadErr.message);
-        }
-
-        res.redirect(`/case/${req.params.id}`);
-      },
+    const files = req.files || {};
+    const legacyDocuments = (files.document || []).map((file) => ({
+      file,
+      type: "Dokumen pendukung",
+    }));
+    const typedDocuments = claimDocumentFields.flatMap(({ name, type }) =>
+      (files[name] || []).map((file) => ({ file, type })),
     );
+    const documents = [...legacyDocuments, ...typedDocuments];
+    if (documents.length === 0) {
+      return res.status(400).send("Pilih setidaknya satu dokumen");
+    }
+
+    Promise.all(
+      documents.map(
+        ({ file, type }) =>
+          new Promise((resolve, reject) => {
+            db.query(
+              "INSERT INTO case_documents (case_id, filename, original_name, document_type, uploaded_by) VALUES (?, ?, ?, ?, ?)",
+              [req.params.id, file.filename, file.originalname, type, req.session.user_id],
+              (uploadErr) => (uploadErr ? reject(uploadErr) : resolve()),
+            );
+          }),
+      ),
+    )
+      .then(() => res.redirect(`/case/${req.params.id}`))
+      .catch((uploadErr) => {
+        documents.forEach(({ file }) => fs.unlinkSync(file.path));
+        res.status(500).send("Failed to save document: " + uploadErr.message);
+      });
   });
 });
 
