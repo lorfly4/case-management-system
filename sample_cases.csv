@@ -4,8 +4,8 @@ Klaim Hospital,Klaim operasi usus buntu - demo,Tindakan operasi dan rawat inap,H
 Klaim Hospital,Klaim persalinan - demo,Perawatan persalinan dan biaya rumah sakit,Medium,Unassigned
 Klaim Hospital,Klaim perawatan pneumonia - demo,Rawat inap dan radiologi paru,High,In Progress
 Klaim Hospital,Klaim observasi satu hari - demo,Perawatan observasi dan biaya dokter,Low,Unassigned
-Non Klaim Hospital,Klaim meninggal dunia - demo,Manfaat meninggal dunia untuk penerima manfaat,High,Unassigned
-Non Klaim Hospital,Klaim penyakit kritis - demo,Manfaat penyakit kritis berdasarkan diagnosis dokter,High,In Progress
-Non Klaim Hospital,Klaim credit life - demo,Pelunasan manfaat kredit sesuai ketentuan polis,Medium,Unassigned
-Non Klaim Hospital,Klaim kecelakaan meninggal dunia - demo,Verifikasi kejadian dan dokumen penerima manfaat,High,On Hold
-Non Klaim Hospital,Klaim penyakit kritis jantung - demo,Review manfaat untuk diagnosis penyakit jantung,Medium,Unassigned
+Klaim Non Hospital,Klaim meninggal dunia - demo,Manfaat meninggal dunia untuk penerima manfaat,High,Unassigned
+Klaim Non Hospital,Klaim penyakit kritis - demo,Manfaat penyakit kritis berdasarkan diagnosis dokter,High,In Progress
+Klaim Non Hospital,Klaim credit life - demo,Pelunasan manfaat kredit sesuai ketentuan polis,Medium,Unassigned
+Klaim Non Hospital,Klaim kecelakaan meninggal dunia - demo,Verifikasi kejadian dan dokumen penerima manfaat,High,On Hold
+Klaim Non Hospital,Klaim penyakit kritis jantung - demo,Review manfaat untuk diagnosis penyakit jantung,Medium,Unassigned

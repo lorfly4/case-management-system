@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Table: cases (untuk semua case dengan 3 tipe)
 CREATE TABLE IF NOT EXISTS cases (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  case_type ENUM('Klaim Hospital', 'Non Klaim Hospital') NOT NULL,
+  case_type ENUM('Klaim Hospital', 'Klaim Non Hospital') NOT NULL,
   title VARCHAR(255) NOT NULL,
   description LONGTEXT,
   json_data LONGTEXT,

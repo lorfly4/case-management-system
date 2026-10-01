@@ -1,10 +1,10 @@
 # Requirement Tambahan — Case Management System (CMS)
-### (Versi: Case Type diubah menjadi Klaim Hospital / Non Klaim Hospital)
+### (Versi: Case Type diubah menjadi Klaim Hospital / Klaim Non Hospital)
 
 > **Catatan perubahan dari versi awal:**
 > Field **Case Type** yang semula berisi *Regular Case / On-Desk Case / Reliance Case* diganti menjadi dua pilihan:
 > - **Klaim Hospital**
-> - **Non Klaim Hospital**
+> - **Klaim Non Hospital**
 >
 > Perubahan ini langsung menentukan input biaya/manfaat mana yang ditampilkan pada form (poin 2).
 
@@ -16,7 +16,7 @@ Form awal pembuatan case baru (`Case Form`) memiliki field wajib:
 
 - **Case Type*** (dropdown), pilihan:
   - Klaim Hospital
-  - Non Klaim Hospital
+  - Klaim Non Hospital
 
 ---
 
@@ -38,7 +38,7 @@ Form menampilkan input biaya berikut:
 > - **Total Biaya Dijaminkan**
 > - **Klaim yang Diajukan**
 
-### 2.2 Jika dipilih **Non Klaim Hospital**
+### 2.2 Jika dipilih **Klaim Non Hospital**
 
 Form menampilkan input:
 
@@ -58,7 +58,7 @@ Field yang perlu ditambahkan pada section **Informasi Polis**:
 | Pemegang Polis | |
 | Tertanggung | |
 | Tanggal Issued Polis | Format tanggal (contoh: 01/10/2026) |
-| Jenis Claim | Terisi otomatis dari Case Type (Klaim Hospital / Non Klaim Hospital) |
+| Jenis Claim | Terisi otomatis dari Case Type (Klaim Hospital / Klaim Non Hospital) |
 | UP (Uang Pertanggungan) | Dropdown/selector |
 | Usia Polis | |
 | Pekerjaan Tertanggung | |
@@ -124,6 +124,6 @@ Section baru untuk kelengkapan proses klaim:
 ## Catatan & Risiko dari Perubahan Case Type
 
 - Field "Jenis Klaim" tetap muncul di dua tempat dengan konteks berbeda:
-  1. **Informasi Polis** — otomatis mengikuti Case Type (Klaim Hospital / Non Klaim Hospital), sifatnya kategori besar.
-  2. **Claim Assessment** — dropdown manual yang lebih detail/granular (Rawat Inap, Penyakit Kritis, Meninggal Dunia, dll). Ini perlu dipastikan **konsisten/selaras** dengan Case Type di atasnya — misalnya "Klaim Meninggal Dunia" harus otomatis tergolong *Non Klaim Hospital*, sedangkan "Klaim Rawat Inap" harus tergolong *Klaim Hospital*.
+  1. **Informasi Polis** — otomatis mengikuti Case Type (Klaim Hospital / Klaim Non Hospital), sifatnya kategori besar.
+  2. **Claim Assessment** — dropdown manual yang lebih detail/granular (Rawat Inap, Penyakit Kritis, Meninggal Dunia, dll). Ini perlu dipastikan **konsisten/selaras** dengan Case Type di atasnya — misalnya "Klaim Meninggal Dunia" harus otomatis tergolong *Klaim Non Hospital*, sedangkan "Klaim Rawat Inap" harus tergolong *Klaim Hospital*.
 - Jika sebelumnya *Regular Case / On-Desk Case / Reliance Case* dipakai di tempat lain pada sistem (misalnya untuk routing/assignment ke tim tertentu, SLA, atau aturan approval), penggantian field ini **berpotensi menghilangkan informasi tersebut**. Perlu dicek apakah ketiga istilah itu masih dipakai di bagian lain CMS sebelum field ini resmi diganti — jika masih dipakai, sebaiknya dipertimbangkan untuk ditambahkan sebagai field terpisah, bukan digantikan sepenuhnya.

@@ -371,7 +371,7 @@
                                         </tr>
                                         <tr>
                                             <td><i class="fas fa-check text-primary me-2"></i><strong>Klaim jiwa / penyakit kritis</strong></td>
-                                            <td><span class="case-type-badge type-non-hospital">Non Klaim Hospital</span></td>
+                                            <td><span class="case-type-badge type-non-hospital">Klaim Non Hospital</span></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -398,7 +398,7 @@
                                         </li>
                                         <li class="mb-3">
                                             <strong>Mapping tipe case:</strong> 
-                                            Sistem mengelompokkan klaim rawat inap sebagai Klaim Hospital dan klaim jiwa atau penyakit kritis sebagai Non Klaim Hospital.
+                                            Sistem mengelompokkan klaim rawat inap sebagai Klaim Hospital dan klaim jiwa atau penyakit kritis sebagai Klaim Non Hospital.
                                         </li>
                                         <li class="mb-3">
                                             <strong>Case dibuat otomatis:</strong> 
@@ -424,10 +424,10 @@
                                     <ul class="mb-0">
                                         <li><code>contoh-1-health-approve.json</code> → <span class="case-type-badge type-hospital">Klaim Hospital</span></li>
                                         <li><code>contoh-2-health-human-review.json</code> → <span class="case-type-badge type-hospital">Klaim Hospital</span></li>
-                                        <li><code>contoh-3-life-refer-investigation.json</code> → <span class="case-type-badge type-non-hospital">Non Klaim Hospital</span></li>
-                                        <li><code>contoh-4-life-death-diterima.json</code> → <span class="case-type-badge type-non-hospital">Non Klaim Hospital</span></li>
-                                        <li><code>contoh-5-life-critical-illness.json</code> → <span class="case-type-badge type-non-hospital">Non Klaim Hospital</span></li>
-                                        <li><code>contoh-6-life-critical-care-hold.json</code> → <span class="case-type-badge type-non-hospital">Non Klaim Hospital</span></li>
+                                        <li><code>contoh-3-life-refer-investigation.json</code> → <span class="case-type-badge type-non-hospital">Klaim Non Hospital</span></li>
+                                        <li><code>contoh-4-life-death-diterima.json</code> → <span class="case-type-badge type-non-hospital">Klaim Non Hospital</span></li>
+                                        <li><code>contoh-5-life-critical-illness.json</code> → <span class="case-type-badge type-non-hospital">Klaim Non Hospital</span></li>
+                                        <li><code>contoh-6-life-critical-care-hold.json</code> → <span class="case-type-badge type-non-hospital">Klaim Non Hospital</span></li>
                                     </ul>
                                 </div>
                             </div>
@@ -470,7 +470,7 @@
                                                         <code><%= c.file_name %></code>
                                                     </td>
                                                     <td class="px-4">
-                                                        <span class="case-type-badge <%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'type-hospital' : 'type-non-hospital' %>"><%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'Klaim Hospital' : 'Non Klaim Hospital' %></span>
+                                                        <span class="case-type-badge <%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'type-hospital' : 'type-non-hospital' %>"><%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'Klaim Hospital' : 'Klaim Non Hospital' %></span>
                                                     </td>
                                                     <td class="px-4">
                                                         <small>
@@ -533,7 +533,7 @@
                                         FILE <%= idx + 1 %>: <%= c.file_name %>
                                         <span class="ms-3">Case ID: #<%= c.case_id %></span>
                                     </h5>
-                                    <span class="case-type-badge" style="background-color:rgba(255,255,255,0.3);color:white;"><%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'Klaim Hospital' : 'Non Klaim Hospital' %></span>
+                                    <span class="case-type-badge" style="background-color:rgba(255,255,255,0.3);color:white;"><%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'Klaim Hospital' : 'Klaim Non Hospital' %></span>
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="row g-4 mb-4">
@@ -567,7 +567,7 @@
                                                     <div class="data-row">
                                                         <div class="data-label">Case Type</div>
                                                         <div class="data-value">
-                                                            <span class="case-type-badge <%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'type-hospital' : 'type-non-hospital' %>"><%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'Klaim Hospital' : 'Non Klaim Hospital' %></span>
+                                                            <span class="case-type-badge <%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'type-hospital' : 'type-non-hospital' %>"><%= ['health', 'hospital', 'kesehatan', 'klaim hospital'].includes(String(c.type || '').toLowerCase()) ? 'Klaim Hospital' : 'Klaim Non Hospital' %></span>
                                                         </div>
                                                     </div>
                                                     <div class="data-row">

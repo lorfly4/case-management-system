@@ -49,7 +49,7 @@ test('parseClaimDetails handles JSON and malformed legacy values', () => {
 
 test('buildClaimDetails aligns case type with the granular claim kind', () => {
   const hospital = buildClaimDetails({
-    case_type: 'Non Klaim Hospital',
+    case_type: 'Klaim Non Hospital',
     claim_kind: 'Klaim rawat inap',
   });
   const nonHospital = buildClaimDetails({
@@ -58,7 +58,7 @@ test('buildClaimDetails aligns case type with the granular claim kind', () => {
   });
 
   assert.equal(hospital.category, 'Klaim Hospital');
-  assert.equal(nonHospital.category, 'Non Klaim Hospital');
+  assert.equal(nonHospital.category, 'Klaim Non Hospital');
 });
 
 test('buildPdfClaimSections prints hospital costs only for Hospital claims', () => {
@@ -86,9 +86,9 @@ test('buildPdfClaimSections prints hospital costs only for Hospital claims', () 
 
 test('buildPdfClaimSections prints Non Hospital benefits and uploaded documents', () => {
   const sections = buildPdfClaimSections(
-    { case_type: 'Non Klaim Hospital' },
+    { case_type: 'Klaim Non Hospital' },
     JSON.stringify({
-      category: 'Non Klaim Hospital',
+      category: 'Klaim Non Hospital',
       non_hospital: { requested_sum_insured: 2000000, benefit_amount: 1500000, approved_amount: 1000000 },
       verification: { decision: 'Disetujui' },
     }),

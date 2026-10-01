@@ -208,7 +208,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group mb-3">
                                                     <label for="up">UP</label>
-                                                    <input type="number" min="0" step="1" class="form-control" id="up" name="up" value="<%= caseItem ? (caseItem.up || '') : '' %>">
+                                                    <input type="text" inputmode="numeric" class="form-control currency-input" id="up" name="up" value="<%= caseItem && caseItem.up ? Number(caseItem.up).toLocaleString('id-ID') : '' %>">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -254,7 +254,7 @@
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label for="policy_sum_insured">Nilai Pertanggungan (Rp)</label>
-                                                <input type="number" min="0" step="1" class="form-control" id="policy_sum_insured" name="policy_sum_insured" value="<%= claimData.policy?.sum_insured ?? '' %>">
+                                                <input type="text" inputmode="numeric" class="form-control currency-input" id="policy_sum_insured" name="policy_sum_insured" value="<%= claimData.policy?.sum_insured ? Number(claimData.policy.sum_insured).toLocaleString('id-ID') : '' %>">
                                             </div>
                                         </div>
 
@@ -309,7 +309,7 @@
                                                 ].forEach(([key, label]) => { %>
                                                 <div class="col-md-6 mb-3">
                                                     <label for="cost_<%= key %>"><%= label %> (Rp)</label>
-                                                    <input type="number" min="0" step="1" class="form-control hospital-cost" id="cost_<%= key %>" name="cost_<%= key %>" value="<%= claimData.hospital?.costs?.[key] ?? '' %>">
+                                                    <input type="text" inputmode="numeric" class="form-control hospital-cost currency-input" id="cost_<%= key %>" name="cost_<%= key %>" value="<%= claimData.hospital?.costs?.[key] ? Number(claimData.hospital.costs[key]).toLocaleString('id-ID') : '' %>">
                                                 </div>
                                                 <% }); %>
                                             </div>
@@ -320,7 +320,7 @@
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <label for="hospital_submitted_amount">Klaim yang Diajukan (Rp)</label>
-                                                    <input type="number" min="0" step="1" class="form-control" id="hospital_submitted_amount" name="hospital_submitted_amount" value="<%= claimData.hospital?.submitted_amount ?? '' %>">
+                                                    <input type="text" inputmode="numeric" class="form-control currency-input" id="hospital_submitted_amount" name="hospital_submitted_amount" value="<%= claimData.hospital?.submitted_amount ? Number(claimData.hospital.submitted_amount).toLocaleString('id-ID') : '' %>">
                                                 </div>
                                             </div>
                                         </div>
@@ -330,15 +330,15 @@
                                             <div class="row">
                                                 <div class="col-md-4 mb-3">
                                                     <label for="non_hospital_sum_insured">Uang Pertanggungan yang Diajukan (Rp)</label>
-                                                    <input type="number" min="0" step="1" class="form-control" id="non_hospital_sum_insured" name="non_hospital_sum_insured" value="<%= claimData.non_hospital?.requested_sum_insured ?? '' %>">
+                                                    <input type="text" inputmode="numeric" class="form-control currency-input" id="non_hospital_sum_insured" name="non_hospital_sum_insured" value="<%= claimData.non_hospital?.requested_sum_insured ? Number(claimData.non_hospital.requested_sum_insured).toLocaleString('id-ID') : '' %>">
                                                 </div>
                                                 <div class="col-md-4 mb-3">
                                                     <label for="non_hospital_benefit">Manfaat Nominal Klaim (Rp)</label>
-                                                    <input type="number" min="0" step="1" class="form-control" id="non_hospital_benefit" name="non_hospital_benefit" value="<%= claimData.non_hospital?.benefit_amount ?? '' %>">
+                                                    <input type="text" inputmode="numeric" class="form-control currency-input" id="non_hospital_benefit" name="non_hospital_benefit" value="<%= claimData.non_hospital?.benefit_amount ? Number(claimData.non_hospital.benefit_amount).toLocaleString('id-ID') : '' %>">
                                                 </div>
                                                 <div class="col-md-4 mb-3">
                                                     <label for="non_hospital_approved">Klaim yang Disetujui (Rp)</label>
-                                                    <input type="number" min="0" step="1" class="form-control" id="non_hospital_approved" name="non_hospital_approved" value="<%= claimData.non_hospital?.approved_amount ?? '' %>">
+                                                    <input type="text" inputmode="numeric" class="form-control currency-input" id="non_hospital_approved" name="non_hospital_approved" value="<%= claimData.non_hospital?.approved_amount ? Number(claimData.non_hospital.approved_amount).toLocaleString('id-ID') : '' %>">
                                                 </div>
                                             </div>
                                         </div>
@@ -498,7 +498,7 @@
                                 </div>
                                 <div class="card-body text-sm">
                                     <p><strong>Case Number:</strong> Unique identifier for the case</p>
-                                    <p><strong>Case Type:</strong> Klaim Hospital atau Non Klaim Hospital</p>
+                                    <p><strong>Case Type:</strong> Klaim Hospital atau Klaim Non Hospital</p>
                                     <p><strong>Priority:</strong> Urgency level (Low, Medium, High)</p>
                                     <p><strong>Status:</strong> Current stage of the case</p>
                                     <div class="alert alert-info alert-sm" role="alert">
@@ -535,8 +535,74 @@
             const hospitalCosts = [...document.querySelectorAll('.hospital-cost')];
             const nonHospitalAmounts = [...nonHospitalFields.querySelectorAll('input')];
             const formatRupiah = (amount) => new Intl.NumberFormat('id-ID').format(amount);
+
+            // --- Currency input masking (tampilan ada separator ribuan, value yang dikirim tetap angka polos) ---
+            const parseCurrencyInput = (value) => {
+                const digitsOnly = String(value || '').replace(/\D/g, '');
+                return digitsOnly ? parseInt(digitsOnly, 10) : 0;
+            };
+            const formatCurrencyInputValue = (input) => {
+                const raw = parseCurrencyInput(input.value);
+                input.value = raw ? formatRupiah(raw) : '';
+            };
+            const currencyInputs = [...document.querySelectorAll('.currency-input')];
+            currencyInputs.forEach((input) => {
+                // Format ulang value awal (hasil render EJS) agar konsisten saat halaman dimuat
+                formatCurrencyInputValue(input);
+                input.addEventListener('input', () => formatCurrencyInputValue(input));
+            });
+            // Sebelum form dikirim, kembalikan semua currency-input ke angka polos tanpa separator
+            document.querySelector('form').addEventListener('submit', () => {
+                currencyInputs.forEach((input) => {
+                    input.value = String(parseCurrencyInput(input.value));
+                });
+            });
+
+            // --- Auto-calculate Usia Polis dari Tanggal Issued Polis s.d. Tanggal Meninggal ---
+            const policyIssuedDateInput = document.getElementById('tanggal_issued_polis');
+            const deathDateInput = document.getElementById('tanggal_meninggal');
+            const policyAgeInput = document.getElementById('usia_polis');
+
+            const calculatePolicyAge = (startDateStr, endDateStr) => {
+                const start = new Date(startDateStr);
+                const end = new Date(endDateStr);
+                if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return '';
+
+                let years = end.getFullYear() - start.getFullYear();
+                let months = end.getMonth() - start.getMonth();
+                let days = end.getDate() - start.getDate();
+
+                if (days < 0) {
+                    months -= 1;
+                    const prevMonthLastDay = new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+                    days += prevMonthLastDay;
+                }
+                if (months < 0) {
+                    years -= 1;
+                    months += 12;
+                }
+
+                // Pengaman untuk kasus langka (mis. tanggal 29-31 melewati bulan Februari)
+                // agar hasil akhir tidak pernah negatif.
+                if (days < 0) { days = 0; }
+                if (months < 0) { months = 0; }
+                if (years < 0) { years = 0; }
+
+                return `${years} tahun ${months} bulan ${days} hari`;
+            };
+
+            const updatePolicyAge = () => {
+                if (!policyIssuedDateInput.value || !deathDateInput.value) return;
+                const result = calculatePolicyAge(policyIssuedDateInput.value, deathDateInput.value);
+                if (result) policyAgeInput.value = result;
+            };
+
+            policyIssuedDateInput.addEventListener('change', updatePolicyAge);
+            deathDateInput.addEventListener('change', updatePolicyAge);
+            updatePolicyAge(); // hitung otomatis saat halaman dimuat (mode edit, jika kedua tanggal sudah terisi)
+
             const hospitalType = 'Klaim Hospital';
-            const nonHospitalType = 'Non Klaim Hospital';
+            const nonHospitalType = 'Klaim Non Hospital';
             const claimKindCaseType = {
                 'Klaim rawat inap': hospitalType,
                 'Klaim perawatan 1 hari': hospitalType,
@@ -561,7 +627,7 @@
             };
             const updateHospitalTotal = () => {
                 const complete = hospitalCosts.every((input) => input.value !== '');
-                const total = hospitalCosts.reduce((sum, input) => sum + (Number(input.value) || 0), 0);
+                const total = hospitalCosts.reduce((sum, input) => sum + parseCurrencyInput(input.value), 0);
                 const display = complete ? formatRupiah(total) : 'Isi seluruh rincian biaya';
                 totalOutput.value = display;
                 totalOutput.textContent = display;

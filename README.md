@@ -4,8 +4,14 @@ Sistem bagi-bagi case yang merata dengan fitur monitoring, distribusi, dan track
 
 ## Fitur Utama
 
+### Penyimpanan Dokumen Klaim
+- Dokumen klaim disimpan di SMB share dalam folder per case: `<judul case> - <case ID>`.
+- Konfigurasikan `SMB_SHARE`, `SMB_USERNAME`, dan `SMB_PASSWORD` di `.env` lokal. Jangan commit file `.env` atau kredensial.
+- Contoh nama key tersedia di `.env.example`; share membutuhkan akses SMB melalui port 445 dari host aplikasi.
+- File yang didukung: PDF, JPG, dan PNG, maksimal 10 MB per file.
+
 ### 1. **Dashboard**
-- Menampilkan kategori Klaim Hospital dan Non Klaim Hospital beserta jumlahnya
+- Menampilkan kategori Klaim Hospital dan Klaim Non Hospital beserta jumlahnya
 - Chart Top 5 PIC dengan case yang sedang ditangani (In Progress/Unassigned)
 - Indikator case yang belum terassign
 
@@ -148,7 +154,7 @@ distribution/
 ### cases
 - `id`: Primary Key
 - `case_number`: Unique case identifier
-- `case_type`: Klaim Hospital|Non Klaim Hospital
+- `case_type`: Klaim Hospital|Klaim Non Hospital
 - `title`: Case title
 - `description`: Case description
 - `status`: Unassigned|In Progress|On Hold|Closed
@@ -247,7 +253,7 @@ distribution/
 
 ### CSV Import Failed
 - Check CSV format (headers harus: case_number,type,title,description,priority)
-- Verify `case_type` (Klaim Hospital atau Non Klaim Hospital)
+- Verify `case_type` (Klaim Hospital atau Klaim Non Hospital)
 - Check case_number tidak duplikat
 
 ## Future Features

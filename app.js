@@ -31,6 +31,12 @@ const {
   buildPdfClaimSections,
   CASE_TYPES,
 } = require("./lib/claim_details");
+const {
+  deleteFromSharedFolder,
+  isSharedFolderPath,
+  readFromSharedFolder,
+  uploadToSharedFolder,
+} = require("./lib/shared_folder");
 
 const app = express();
 
@@ -129,7 +135,7 @@ const ensureClaimCaseTypeColumn = () => {
       if (err) return reject(err);
       if (results.length > 0) return resolve();
       db.query(
-        "ALTER TABLE cases ADD COLUMN case_type ENUM('Klaim Hospital', 'Non Klaim Hospital') NULL AFTER id",
+        "ALTER TABLE cases ADD COLUMN case_type ENUM('Klaim Hospital', 'Klaim Non Hospital') NULL AFTER id",
         (alterErr) => (alterErr ? reject(alterErr) : resolve()),
       );
     });
@@ -281,24 +287,39 @@ const claimDocumentFields = [
   { name: "police_document", type: "Laporan kepolisian" },
 ];
 
-const persistClaimDocuments = (caseId, files, userId) => {
+const persistDocuments = async (caseId, caseTitle, documents, userId) => {
+  for (const { file, type } of documents) {
+    try {
+      const data = await fs.promises.readFile(file.path);
+      const storedPath = await uploadToSharedFolder({
+        title: caseTitle,
+        caseId,
+        originalName: file.originalname,
+        data,
+      });
+      try {
+        await new Promise((resolve, reject) => {
+          db.query(
+            "INSERT INTO case_documents (case_id, filename, original_name, document_type, uploaded_by) VALUES (?, ?, ?, ?, ?)",
+            [caseId, storedPath, file.originalname, type, userId],
+            (err) => (err ? reject(err) : resolve()),
+          );
+        });
+      } catch (error) {
+        await deleteFromSharedFolder(storedPath).catch(() => {});
+        throw error;
+      }
+    } finally {
+      await fs.promises.unlink(file.path).catch(() => {});
+    }
+  }
+};
+
+const persistClaimDocuments = (caseId, caseTitle, files, userId) => {
   const documents = claimDocumentFields.flatMap(({ name, type }) =>
     (files?.[name] || []).map((file) => ({ file, type })),
   );
-  if (documents.length === 0) return Promise.resolve();
-
-  return Promise.all(
-    documents.map(
-      ({ file, type }) =>
-        new Promise((resolve, reject) => {
-          db.query(
-            "INSERT INTO case_documents (case_id, filename, original_name, document_type, uploaded_by) VALUES (?, ?, ?, ?, ?)",
-            [caseId, file.filename, file.originalname, type, userId],
-            (err) => (err ? reject(err) : resolve()),
-          );
-        }),
-    ),
-  );
+  return persistDocuments(caseId, caseTitle, documents, userId);
 };
 
 const safeNumber = (value, fallback = 0) => {
@@ -2038,7 +2059,7 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
   if (!CASE_TYPES.includes(req.body.case_type)) {
     Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
     return res.status(400).render("pages/case_form_new", {
-      message: "Pilih Case Type Klaim Hospital atau Non Klaim Hospital.",
+      message: "Pilih Case Type Klaim Hospital atau Klaim Non Hospital.",
       caseItem: null,
       claimData,
       caseTypes: CASE_TYPES,
@@ -2087,7 +2108,7 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
           role: req.session.role,
         });
       }
-      persistClaimDocuments(result.insertId, req.files, req.session.user_id)
+      persistClaimDocuments(result.insertId, title, req.files, req.session.user_id)
         .then(() => res.redirect(`/case/${result.insertId}`))
         .catch((documentErr) =>
           res.status(500).send("Case created, but a document could not be saved: " + documentErr.message),
@@ -2145,7 +2166,7 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
   const claimData = buildClaimDetails(req.body);
   if (!CASE_TYPES.includes(req.body.case_type)) {
     Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
-    return res.status(400).send("Pilih Case Type Klaim Hospital atau Non Klaim Hospital.");
+    return res.status(400).send("Pilih Case Type Klaim Hospital atau Klaim Non Hospital.");
   }
 
   const sql = `UPDATE cases SET case_type = ?, title = ?, description = ?, priority = ?, status = ?,
@@ -2186,7 +2207,7 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
         Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
         return res.status(500).send("Error updating case: " + err.message);
       }
-      persistClaimDocuments(req.params.id, req.files, req.session.user_id)
+      persistClaimDocuments(req.params.id, title, req.files, req.session.user_id)
         .then(() => res.redirect(`/case/${req.params.id}`))
         .catch((documentErr) =>
           res.status(500).send("Case updated, but a document could not be saved: " + documentErr.message),
@@ -2685,24 +2706,46 @@ app.post("/case/:id/upload-document", checkAuth, (req, res) => {
       return res.status(400).send("Pilih setidaknya satu dokumen");
     }
 
-    Promise.all(
-      documents.map(
-        ({ file, type }) =>
-          new Promise((resolve, reject) => {
-            db.query(
-              "INSERT INTO case_documents (case_id, filename, original_name, document_type, uploaded_by) VALUES (?, ?, ?, ?, ?)",
-              [req.params.id, file.filename, file.originalname, type, req.session.user_id],
-              (uploadErr) => (uploadErr ? reject(uploadErr) : resolve()),
-            );
-          }),
-      ),
-    )
-      .then(() => res.redirect(`/case/${req.params.id}`))
-      .catch((uploadErr) => {
+    db.query("SELECT title FROM cases WHERE id = ?", [req.params.id], (caseErr, cases) => {
+      if (caseErr || cases.length === 0) {
         documents.forEach(({ file }) => fs.unlinkSync(file.path));
-        res.status(500).send("Failed to save document: " + uploadErr.message);
-      });
+        return res.status(caseErr ? 500 : 404).send(caseErr ? caseErr.message : "Case not found");
+      }
+
+      persistDocuments(req.params.id, cases[0].title, documents, req.session.user_id)
+        .then(() => res.redirect(`/case/${req.params.id}`))
+        .catch((uploadErr) => {
+          res.status(500).send("Failed to save document to shared folder: " + uploadErr.message);
+        });
+    });
   });
+});
+
+app.get("/case-document/:id", checkAuth, (req, res) => {
+  db.query(
+    "SELECT filename, original_name FROM case_documents WHERE id = ?",
+    [req.params.id],
+    async (err, results) => {
+      if (err) return res.status(500).send("Failed to find document");
+      if (results.length === 0) return res.status(404).send("Document not found");
+
+      const document = results[0];
+      const downloadName = path.basename(document.original_name || "claim-document");
+      try {
+        if (isSharedFolderPath(document.filename)) {
+          const contents = await readFromSharedFolder(document.filename);
+          res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(downloadName)}`);
+          res.type(path.extname(downloadName) || "application/octet-stream");
+          return res.send(contents);
+        }
+
+        const localPath = path.join(__dirname, "uploads", "case-documents", path.basename(document.filename));
+        return res.sendFile(localPath, { headers: { "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(downloadName)}` } });
+      } catch (downloadErr) {
+        return res.status(502).send("Failed to download document from shared folder: " + downloadErr.message);
+      }
+    },
+  );
 });
 
 // --- ROOT ROUTE ---

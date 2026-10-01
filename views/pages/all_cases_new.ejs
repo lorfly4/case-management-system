@@ -156,7 +156,7 @@
                                             <tr>
                                                 <td data-order="<%= caseItem.id %>"><strong>#<%= caseItem.id %></strong></td>
                                                 <td>
-                                                    <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Non Klaim Hospital' ? 'success' : 'secondary') %>">
+                                                    <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Klaim Non Hospital' ? 'success' : 'secondary') %>">
                                                         <%= caseItem.case_type || 'Belum ditentukan' %>
                                                     </span>
                                                 </td>

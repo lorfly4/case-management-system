@@ -149,7 +149,7 @@
                                 <div class="col-md-3">
                                     <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Case Type</label>
                                     <p class="mb-0">
-                                        <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Non Klaim Hospital' ? 'success' : 'secondary') %> px-3 py-2">
+                                        <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Klaim Non Hospital' ? 'success' : 'secondary') %> px-3 py-2">
                                             <i class="fas fa-tag me-1"></i><%= caseItem.case_type || claimData?.category || 'Belum ditentukan' %>
                                         </span>
                                     </p>
@@ -238,7 +238,7 @@
                                     </table>
                                 </div>
                                 <p class="mb-0">Klaim yang Diajukan: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.hospital?.submitted_amount || 0) %></strong></p>
-                                <% } else if ((claimData.category || caseItem.case_type) === 'Non Klaim Hospital') { %>
+                                <% } else if ((claimData.category || caseItem.case_type) === 'Klaim Non Hospital') { %>
                                 <div class="row g-3">
                                     <div class="col-md-4">UP yang Diajukan: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.requested_sum_insured || 0) %></strong></div>
                                     <div class="col-md-4">Manfaat Nominal Klaim: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.benefit_amount || 0) %></strong></div>
@@ -285,7 +285,7 @@
                                         <% documents.forEach(doc => { %>
                                         <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
                                             <span><i class="fas fa-file-alt me-2 text-primary"></i><strong><%= doc.document_type || 'Dokumen pendukung' %></strong>: <%= doc.original_name %></span>
-                                            <a href="/uploads/case-documents/<%= doc.filename %>" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <a href="/case-document/<%= doc.id %>" target="_blank" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-download me-1"></i>Open
                                             </a>
                                         </li>
