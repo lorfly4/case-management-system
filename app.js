@@ -180,13 +180,8 @@ const parseJsonForPdf = (value) => {
     }
 
     return JSON.parse(value);
-
   } catch (error) {
-
-    console.error(
-      "JSON PDF parse error:",
-      error.message
-    );
+    console.error("JSON PDF parse error:", error.message);
 
     return null;
   }
@@ -312,7 +307,11 @@ const normalizeClaimAssessmentData = (caseData) => {
   // pada PDF Claim Assessment meskipun json_data kosong atau tidak memiliki field tersebut.
   const pick = (...values) => {
     for (const value of values) {
-      if (value !== undefined && value !== null && String(value).trim() !== "") {
+      if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ""
+      ) {
         return value;
       }
     }
@@ -320,34 +319,118 @@ const normalizeClaimAssessmentData = (caseData) => {
   };
 
   const formatMaybeCurrency = (value) => {
-    if (value === undefined || value === null || String(value).trim() === "") return "-";
+    if (value === undefined || value === null || String(value).trim() === "")
+      return "-";
     const numeric = Number(String(value).replace(/[^0-9.-]/g, ""));
     return Number.isFinite(numeric) ? formatCurrency(numeric) : String(value);
   };
 
   return {
     informasi_polis: [
-      { label: "No. Polis", value: pick(polis.no_polis, caseData.no_polis, caseData.policy_id) },
-      { label: "Pemegang Polis", value: pick(polis.pemegang_polis, caseData.pemegang_polis, caseData.policy_holder) },
-      { label: "Tertanggung", value: pick(polis.tertanggung, caseData.tertanggung, caseData.member_name, caseData.pic_name) },
-      { label: "Tanggal Issued Polis", value: pick(polis.tanggal_issued_polis, caseData.tanggal_issued_polis, caseData.policy_issued_date) },
-      { label: "Jenis Claim", value: pick(polis.jenis_claim, caseData.jenis_claim, caseData.type) },
-      { label: "UP", value: formatMaybeCurrency(pick(polis.up, caseData.up, caseData.amount)) },
-      { label: "Usia Polis", value: pick(polis.usia_polis, caseData.usia_polis) },
-      { label: "Pekerjaan Tertanggung", value: pick(polis.pekerjaan_tertanggung, caseData.pekerjaan_tertanggung) },
-      { label: "Alamat", value: pick(polis.alamat, caseData.alamat, caseData.address) },
+      {
+        label: "No. Polis",
+        value: pick(polis.no_polis, caseData.no_polis, caseData.policy_id),
+      },
+      {
+        label: "Pemegang Polis",
+        value: pick(
+          polis.pemegang_polis,
+          caseData.pemegang_polis,
+          caseData.policy_holder,
+        ),
+      },
+      {
+        label: "Tertanggung",
+        value: pick(
+          polis.tertanggung,
+          caseData.tertanggung,
+          caseData.member_name,
+          caseData.pic_name,
+        ),
+      },
+      {
+        label: "Tanggal Issued Polis",
+        value: pick(
+          polis.tanggal_issued_polis,
+          caseData.tanggal_issued_polis,
+          caseData.policy_issued_date,
+        ),
+      },
+      {
+        label: "Jenis Claim",
+        value: pick(polis.jenis_claim, caseData.jenis_claim, caseData.type),
+      },
+      {
+        label: "UP",
+        value: formatMaybeCurrency(
+          pick(polis.up, caseData.up, caseData.amount),
+        ),
+      },
+      {
+        label: "Usia Polis",
+        value: pick(polis.usia_polis, caseData.usia_polis),
+      },
+      {
+        label: "Pekerjaan Tertanggung",
+        value: pick(
+          polis.pekerjaan_tertanggung,
+          caseData.pekerjaan_tertanggung,
+        ),
+      },
+      {
+        label: "Alamat",
+        value: pick(polis.alamat, caseData.alamat, caseData.address),
+      },
     ],
     informasi_klaim: [
-      { label: "Tanggal Meninggal", value: pick(klaim.tanggal_meninggal, caseData.tanggal_meninggal) },
-      { label: "Penyebab Meninggal", value: pick(klaim.penyebab_meninggal, caseData.penyebab_meninggal) },
-      { label: "Tempat Meninggal", value: pick(klaim.tempat_meninggal, caseData.tempat_meninggal) },
-      { label: "Pengaju Klaim", value: pick(klaim.pengaju_klaim, caseData.pengaju_klaim) },
-      { label: "Kronologi Singkat", value: pick(klaim.kronologi_singkat, caseData.kronologi_singkat, caseData.description) },
+      {
+        label: "Tanggal Meninggal",
+        value: pick(klaim.tanggal_meninggal, caseData.tanggal_meninggal),
+      },
+      {
+        label: "Penyebab Meninggal",
+        value: pick(klaim.penyebab_meninggal, caseData.penyebab_meninggal),
+      },
+      {
+        label: "Tempat Meninggal",
+        value: pick(klaim.tempat_meninggal, caseData.tempat_meninggal),
+      },
+      {
+        label: "Pengaju Klaim",
+        value: pick(klaim.pengaju_klaim, caseData.pengaju_klaim),
+      },
+      {
+        label: "Kronologi Singkat",
+        value: pick(
+          klaim.kronologi_singkat,
+          caseData.kronologi_singkat,
+          caseData.description,
+        ),
+      },
     ],
     claim_assesment: [
-      { label: "Status Claim", value: pick(assesment.status_claim, caseData.status_claim, caseData.status) },
-      { label: "Hasil Assessment", value: pick(assesment.hasil_assesment, assesment.hasil_assessment, caseData.hasil_assesment) },
-      { label: "Dasar Ketentuan", value: formatDasarKetentuan(pick(assesment.dasar_ketentuan, caseData.dasar_ketentuan)) },
+      {
+        label: "Status Claim",
+        value: pick(
+          assesment.status_claim,
+          caseData.status_claim,
+          caseData.status,
+        ),
+      },
+      {
+        label: "Hasil Assessment",
+        value: pick(
+          assesment.hasil_assesment,
+          assesment.hasil_assessment,
+          caseData.hasil_assesment,
+        ),
+      },
+      {
+        label: "Dasar Ketentuan",
+        value: formatDasarKetentuan(
+          pick(assesment.dasar_ketentuan, caseData.dasar_ketentuan),
+        ),
+      },
     ],
   };
 };
@@ -445,7 +528,6 @@ const drawTableSection = (doc, sectionTitle, dataRows, options = {}) => {
   doc.y = currentY + 14;
 };
 
-
 /**
  * Tabel untuk halaman pertama CLAIM ASSESSMENT.
  * Sengaja TIDAK melakukan addPage() agar seluruh assessment tetap berada
@@ -458,7 +540,12 @@ const truncatePdfText = (value, maxChars = 420) => {
   return `${text.slice(0, maxChars - 3).trim()}...`;
 };
 
-const drawFixedAssessmentSection = (doc, sectionTitle, dataRows, options = {}) => {
+const drawFixedAssessmentSection = (
+  doc,
+  sectionTitle,
+  dataRows,
+  options = {},
+) => {
   const startX = options.startX || 40;
   const col1Width = options.col1Width || 150;
   const col2Width = options.col2Width || 365;
@@ -476,7 +563,10 @@ const drawFixedAssessmentSection = (doc, sectionTitle, dataRows, options = {}) =
 
   let currentY = doc.y;
 
-  doc.fillColor("#1F3864").rect(startX, currentY, totalWidth, headerHeight).fill();
+  doc
+    .fillColor("#1F3864")
+    .rect(startX, currentY, totalWidth, headerHeight)
+    .fill();
   doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(8);
   doc.text("Keterangan", startX + padding, currentY + 5, {
     width: col1Width - padding * 2,
@@ -499,19 +589,30 @@ const drawFixedAssessmentSection = (doc, sectionTitle, dataRows, options = {}) =
 
     const bgColor = index % 2 === 0 ? "#FFFFFF" : "#F8FAFC";
     doc.fillColor(bgColor).rect(startX, currentY, totalWidth, rowHeight).fill();
-    doc.strokeColor("#D1D5DB").lineWidth(0.4)
-      .rect(startX, currentY, totalWidth, rowHeight).stroke();
-    doc.moveTo(startX + col1Width, currentY)
-      .lineTo(startX + col1Width, currentY + rowHeight).stroke();
+    doc
+      .strokeColor("#D1D5DB")
+      .lineWidth(0.4)
+      .rect(startX, currentY, totalWidth, rowHeight)
+      .stroke();
+    doc
+      .moveTo(startX + col1Width, currentY)
+      .lineTo(startX + col1Width, currentY + rowHeight)
+      .stroke();
 
-    doc.fillColor("#1E293B").font("Helvetica-Bold").fontSize(7.8)
+    doc
+      .fillColor("#1E293B")
+      .font("Helvetica-Bold")
+      .fontSize(7.8)
       .text(label, startX + padding, currentY + padding, {
         width: col1Width - padding * 2,
         height: rowHeight - padding * 2,
         ellipsis: true,
       });
 
-    doc.fillColor("#334155").font("Helvetica").fontSize(7.8)
+    doc
+      .fillColor("#334155")
+      .font("Helvetica")
+      .fontSize(7.8)
       .text(value, startX + col1Width + padding, currentY + padding, {
         width: col2Width - padding * 2,
         height: rowHeight - padding * 2,
@@ -547,6 +648,7 @@ const formatJsonDate = (value) => {
   return new Intl.DateTimeFormat("id-ID", {
     dateStyle: "medium",
     timeStyle: value.includes("T") ? "short" : undefined,
+    timeZone: "Asia/Jakarta",
   }).format(date);
 };
 
@@ -607,34 +709,394 @@ const getJsonField = (obj, name, fallback = "-") => {
 };
 
 /**
+ * Membaca field hasil ekstraksi bertipe { value, origin, confidence, raw_text, source }
+ * dan mengembalikan objek field-nya (atau null jika tidak ada).
+ */
+const getExtractedField = (obj, name) => {
+  if (!obj || typeof obj !== "object") return null;
+  const field = obj[name];
+  if (field === undefined || field === null) return null;
+  if (
+    typeof field === "object" &&
+    Object.prototype.hasOwnProperty.call(field, "value")
+  ) {
+    return field;
+  }
+  return { value: field };
+};
+
+/**
+ * Memformat nilai field hasil ekstraksi (extracted_data) menjadi teks awam:
+ * tanggal & mata uang diformat, field sensitif (NIK/no. rekening/telepon) tetap
+ * ditampilkan dalam bentuk masked, dan disertai tingkat keyakinan ekstraksi jika ada.
+ */
+const formatExtractedValue = (name, field) => {
+  if (!field) return "-";
+  const lowerName = String(name).toLowerCase();
+  const value = field.value;
+
+  if (value === null || value === undefined || value === "") {
+    return field.origin === "not_found" ? "Tidak ditemukan" : "-";
+  }
+
+  const sensitiveFields = [
+    "id_number_masked",
+    "account_number_masked",
+    "phone",
+  ];
+  const isSensitive = sensitiveFields.includes(name);
+
+  let display;
+  if (!isSensitive && field.raw_text) {
+    display = field.raw_text;
+  } else if (lowerName.includes("date")) {
+    display = formatJsonDate(value);
+  } else if (
+    ["sum_assured", "payable", "billed", "amount"].some((x) =>
+      lowerName.includes(x),
+    )
+  ) {
+    display = formatJsonCurrency(value);
+  } else if (lowerName === "policy_age_months") {
+    display = `${value} bulan`;
+  } else if (lowerName === "death_category") {
+    const map = {
+      natural: "Wajar / Sakit",
+      accident: "Kecelakaan",
+      suicide: "Bunuh Diri",
+      homicide: "Pembunuhan",
+    };
+    display = map[String(value).toLowerCase()] || humanizeKey(value);
+  } else {
+    display = String(value);
+  }
+
+  if (field.confidence !== undefined) {
+    display += ` (tingkat keyakinan ekstraksi: ${formatJsonPercent(field.confidence)})`;
+  } else if (field.origin === "derived" && field.note) {
+    display += ` (${field.note})`;
+  }
+
+  return display;
+};
+
+/**
  * Render JSON menjadi lampiran ringkas dan human-readable.
  * Yang ditampilkan adalah informasi substantif, bukan metadata teknis.
  */
 const drawJsonAsTable = (doc, dataObject, startX = 40) => {
   const data = dataObject || {};
   const requestRef = getJsonField(data, "request_ref", {});
+  const engine = getJsonField(data, "engine", {});
   const assessment = getJsonField(data, "assessment", {});
   const amount = getJsonField(assessment, "amount", {});
   const documents = Array.isArray(data.documents) ? data.documents : [];
   const policyEvaluation = getJsonField(data, "policy_evaluation", {});
-  const rules = Array.isArray(policyEvaluation.rules) ? policyEvaluation.rules : [];
+  const rules = Array.isArray(policyEvaluation.rules)
+    ? policyEvaluation.rules
+    : [];
   const audit = getJsonField(data, "audit", {});
   const retention = getJsonField(data, "retention", {});
 
   // 1. IDENTITAS / REFERENSI UTAMA
-  drawTableSection(doc, "Informasi Utama", [
-    { label: "Bidang Usaha", value: getJsonField(data, "line_of_business") },
-    { label: "ID Proses", value: getJsonField(data, "processing_id") },
-    { label: "No. Klaim", value: getJsonField(requestRef, "tpa_claim_id") },
-    { label: "Batch Klaim", value: getJsonField(requestRef, "tpa_batch_id") },
-    { label: "No. Polis", value: getJsonField(requestRef, "policy_id") },
-    { label: "ID Peserta", value: getJsonField(requestRef, "member_id") },
-    { label: "Produk", value: getJsonField(requestRef, "product_code") },
-    {
-      label: "Tanggal Diterima",
-      value: formatJsonDate(getJsonField(requestRef, "received_at")),
-    },
-  ], { startX });
+  drawTableSection(
+    doc,
+    "Informasi Utama",
+    [
+      { label: "Versi Skema", value: getJsonField(data, "schema_version") },
+      { label: "ID Proses", value: getJsonField(data, "processing_id") },
+      { label: "Bidang Usaha", value: getJsonField(data, "line_of_business") },
+      { label: "Jenis Klaim", value: getJsonField(data, "claim_type") },
+      { label: "Kategori Klaim", value: getJsonField(data, "claim_category") },
+      {
+        label: "Sub Jenis Klaim",
+        value:
+          Array.isArray(data.claim_types) && data.claim_types.length > 0
+            ? data.claim_types.map((t) => humanizeKey(t)).join(", ")
+            : "-",
+      },
+      { label: "No. Klaim", value: getJsonField(requestRef, "tpa_claim_id") },
+      { label: "Batch Klaim", value: getJsonField(requestRef, "tpa_batch_id") },
+      { label: "No. Polis", value: getJsonField(requestRef, "policy_id") },
+      { label: "ID Peserta", value: getJsonField(requestRef, "member_id") },
+      { label: "Produk", value: getJsonField(requestRef, "product_code") },
+      {
+        label: "Tanggal Diterima",
+        value: formatJsonDate(getJsonField(requestRef, "received_at")),
+      },
+    ],
+    { startX },
+  );
+
+  // 1a. INFORMASI ENGINE PEMROSESAN
+  if (Object.keys(engine).length > 0) {
+    drawTableSection(
+      doc,
+      "Informasi Engine Pemrosesan",
+      [
+        { label: "Penyedia Engine", value: getJsonField(engine, "provider") },
+        {
+          label: "Versi Engine",
+          value: getJsonField(engine, "engine_version"),
+        },
+        {
+          label: "Versi Ruleset",
+          value: getJsonField(engine, "ruleset_version"),
+        },
+        {
+          label: "Region Pemrosesan",
+          value: getJsonField(engine, "processing_region"),
+        },
+      ],
+      { startX },
+    );
+  }
+
+  // 1b. DATA HASIL EKSTRAKSI TERSTRUKTUR (skema klaim jiwa/kematian, dst.)
+  const extractedData = getJsonField(data, "extracted_data", {});
+  if (Object.keys(extractedData).length > 0) {
+    const policyInfo = getJsonField(extractedData, "policy_info", {});
+    const insuredInfo = getJsonField(extractedData, "insured_info", {});
+    const claimantInfo = getJsonField(extractedData, "claimant_info", {});
+    const claimInfo = getJsonField(extractedData, "claim_info", {});
+    const deathInfo = getJsonField(claimInfo, "death", {});
+
+    if (Object.keys(policyInfo).length > 0) {
+      drawTableSection(
+        doc,
+        "Informasi Polis",
+        [
+          {
+            label: "Nomor Polis",
+            value: formatExtractedValue(
+              "policy_number",
+              getExtractedField(policyInfo, "policy_number"),
+            ),
+          },
+          {
+            label: "Pemegang Polis",
+            value: formatExtractedValue(
+              "policyholder_name",
+              getExtractedField(policyInfo, "policyholder_name"),
+            ),
+          },
+          {
+            label: "Produk",
+            value: formatExtractedValue(
+              "product_name",
+              getExtractedField(policyInfo, "product_name"),
+            ),
+          },
+          {
+            label: "Tanggal Terbit Polis",
+            value: formatExtractedValue(
+              "policy_issue_date",
+              getExtractedField(policyInfo, "policy_issue_date"),
+            ),
+          },
+          {
+            label: "Tanggal Berlaku Polis",
+            value: formatExtractedValue(
+              "policy_effective_date",
+              getExtractedField(policyInfo, "policy_effective_date"),
+            ),
+          },
+          {
+            label: "Uang Pertanggungan",
+            value: formatExtractedValue(
+              "sum_assured",
+              getExtractedField(policyInfo, "sum_assured"),
+            ),
+          },
+          {
+            label: "Status Polis",
+            value: formatExtractedValue(
+              "policy_status",
+              getExtractedField(policyInfo, "policy_status"),
+            ),
+          },
+          {
+            label: "Usia Polis",
+            value: formatExtractedValue(
+              "policy_age_months",
+              getExtractedField(policyInfo, "policy_age_months"),
+            ),
+          },
+        ],
+        { startX },
+      );
+    }
+
+    if (Object.keys(insuredInfo).length > 0) {
+      drawTableSection(
+        doc,
+        "Informasi Tertanggung",
+        [
+          {
+            label: "Nama Tertanggung",
+            value: formatExtractedValue(
+              "insured_name",
+              getExtractedField(insuredInfo, "insured_name"),
+            ),
+          },
+          {
+            label: "Tanggal Lahir",
+            value: formatExtractedValue(
+              "date_of_birth",
+              getExtractedField(insuredInfo, "date_of_birth"),
+            ),
+          },
+          {
+            label: "Jenis Kelamin",
+            value: formatExtractedValue(
+              "gender",
+              getExtractedField(insuredInfo, "gender"),
+            ),
+          },
+          {
+            label: "Pekerjaan",
+            value: formatExtractedValue(
+              "occupation",
+              getExtractedField(insuredInfo, "occupation"),
+            ),
+          },
+          {
+            label: "Alamat",
+            value: formatExtractedValue(
+              "address",
+              getExtractedField(insuredInfo, "address"),
+            ),
+          },
+          {
+            label: "Nomor Identitas",
+            value: formatExtractedValue(
+              "id_number_masked",
+              getExtractedField(insuredInfo, "id_number_masked"),
+            ),
+          },
+        ],
+        { startX },
+      );
+    }
+
+    if (Object.keys(claimantInfo).length > 0) {
+      drawTableSection(
+        doc,
+        "Informasi Pengaju Klaim",
+        [
+          {
+            label: "Nama Pengaju",
+            value: formatExtractedValue(
+              "claimant_name",
+              getExtractedField(claimantInfo, "claimant_name"),
+            ),
+          },
+          {
+            label: "Hubungan dengan Tertanggung",
+            value: formatExtractedValue(
+              "relationship_to_insured",
+              getExtractedField(claimantInfo, "relationship_to_insured"),
+            ),
+          },
+          {
+            label: "No. Telepon",
+            value: formatExtractedValue(
+              "phone",
+              getExtractedField(claimantInfo, "phone"),
+            ),
+          },
+          {
+            label: "Tanggal Pengajuan Klaim",
+            value: formatExtractedValue(
+              "claim_submission_date",
+              getExtractedField(claimantInfo, "claim_submission_date"),
+            ),
+          },
+          {
+            label: "Penerima Manfaat",
+            value: formatExtractedValue(
+              "beneficiary_name",
+              getExtractedField(claimantInfo, "beneficiary_name"),
+            ),
+          },
+          {
+            label: "Nama Bank",
+            value: formatExtractedValue(
+              "bank_name",
+              getExtractedField(claimantInfo, "bank_name"),
+            ),
+          },
+          {
+            label: "No. Rekening",
+            value: formatExtractedValue(
+              "account_number_masked",
+              getExtractedField(claimantInfo, "account_number_masked"),
+            ),
+          },
+        ],
+        { startX },
+      );
+    }
+
+    if (Object.keys(claimInfo).length > 0) {
+      drawTableSection(
+        doc,
+        "Detail Kejadian Klaim",
+        [
+          {
+            label: "Tanggal Kejadian",
+            value: formatExtractedValue(
+              "event_date",
+              getExtractedField(claimInfo, "event_date"),
+            ),
+          },
+          {
+            label: "Kronologi Singkat",
+            value: formatExtractedValue(
+              "brief_chronology",
+              getExtractedField(claimInfo, "brief_chronology"),
+            ),
+          },
+          {
+            label: "Tanggal Meninggal",
+            value: formatExtractedValue(
+              "date_of_death",
+              getExtractedField(deathInfo, "date_of_death"),
+            ),
+          },
+          {
+            label: "Penyebab Kematian",
+            value: formatExtractedValue(
+              "cause_of_death",
+              getExtractedField(deathInfo, "cause_of_death"),
+            ),
+          },
+          {
+            label: "Tempat Meninggal",
+            value: formatExtractedValue(
+              "place_of_death",
+              getExtractedField(deathInfo, "place_of_death"),
+            ),
+          },
+          {
+            label: "Kategori Kematian",
+            value: formatExtractedValue(
+              "death_category",
+              getExtractedField(deathInfo, "death_category"),
+            ),
+          },
+          {
+            label: "Nomor Akta Kematian",
+            value: formatExtractedValue(
+              "death_certificate_number",
+              getExtractedField(deathInfo, "death_certificate_number"),
+            ),
+          },
+        ],
+        { startX },
+      );
+    }
+  }
 
   // 2. DOKUMEN YANG MENJADI DASAR PENILAIAN
   if (documents.length > 0) {
@@ -700,16 +1162,21 @@ const drawJsonAsTable = (doc, dataObject, startX = 40) => {
   }
 
   // 3. MANFAAT / KETENTUAN POLIS
-  drawTableSection(doc, "Informasi Manfaat", [
-    {
-      label: "Kode Manfaat",
-      value: getJsonField(policyEvaluation, "benefit_code"),
-    },
-    {
-      label: "Jumlah Ketentuan Dievaluasi",
-      value: rules.length,
-    },
-  ], { startX });
+  drawTableSection(
+    doc,
+    "Informasi Manfaat",
+    [
+      {
+        label: "Kode Manfaat",
+        value: getJsonField(policyEvaluation, "benefit_code"),
+      },
+      {
+        label: "Jumlah Ketentuan Dievaluasi",
+        value: rules.length,
+      },
+    ],
+    { startX },
+  );
 
   // 4. HASIL EVALUASI KETENTUAN
   if (rules.length > 0) {
@@ -737,58 +1204,181 @@ const drawJsonAsTable = (doc, dataObject, startX = 40) => {
   }
 
   // 5. HASIL AKHIR ASSESSMENT
-  drawTableSection(doc, "Hasil Assessment", [
-    {
-      label: "Rekomendasi",
-      value: formatJsonRecommendation(getJsonField(assessment, "recommendation")),
-    },
-    {
-      label: "Tingkat Keyakinan",
-      value: formatJsonPercent(getJsonField(assessment, "confidence")),
-    },
-    {
-      label: "Perlu Review Manual",
-      value: formatJsonBoolean(getJsonField(assessment, "human_review", {}).required),
-    },
-  ], { startX });
+  drawTableSection(
+    doc,
+    "Hasil Assessment",
+    [
+      {
+        label: "Rekomendasi",
+        value: formatJsonRecommendation(
+          getJsonField(assessment, "recommendation"),
+        ),
+      },
+      {
+        label: "Tingkat Keyakinan",
+        value: formatJsonPercent(getJsonField(assessment, "confidence")),
+      },
+      {
+        label: "Perlu Review Manual",
+        value: formatJsonBoolean(
+          getJsonField(assessment, "human_review", {}).required,
+        ),
+      },
+    ],
+    { startX },
+  );
 
   // 6. ALASAN KEPUTUSAN
   const reasons = Array.isArray(assessment.reasons) ? assessment.reasons : [];
   if (reasons.length > 0) {
-    drawTableSection(doc, "Alasan Keputusan", reasons.map((reason, index) => ({
-      label: `${index + 1}. ${getJsonField(reason, "rule_id")}`,
-      value: getJsonField(reason, "summary"),
-    })), { startX });
+    drawTableSection(
+      doc,
+      "Alasan Keputusan",
+      reasons.map((reason, index) => ({
+        label: `${index + 1}. ${getJsonField(reason, "rule_id")}`,
+        value: getJsonField(reason, "summary"),
+      })),
+      { startX },
+    );
   }
 
   // 7. PERHITUNGAN NILAI KLAIM
   if (Object.keys(amount).length > 0) {
-    drawTableSection(doc, "Perhitungan Klaim", [
-      { label: "Mata Uang", value: getJsonField(amount, "currency") },
-      { label: "Total Tagihan", value: formatJsonCurrency(getJsonField(amount, "billed"), getJsonField(amount, "currency", "IDR")) },
-      { label: "Tidak Dijamin", value: formatJsonCurrency(getJsonField(amount, "not_covered"), getJsonField(amount, "currency", "IDR")) },
-      { label: "Deductible", value: formatJsonCurrency(getJsonField(amount, "deductible"), getJsonField(amount, "currency", "IDR")) },
-      { label: "Co-pay", value: formatJsonCurrency(getJsonField(amount, "copay"), getJsonField(amount, "currency", "IDR")) },
-      { label: "Nilai Dapat Dibayar", value: formatJsonCurrency(getJsonField(amount, "payable"), getJsonField(amount, "currency", "IDR")) },
-      { label: "Catatan Perhitungan", value: getJsonField(amount, "calculation_note") },
-    ], { startX });
+    drawTableSection(
+      doc,
+      "Perhitungan Klaim",
+      [
+        { label: "Mata Uang", value: getJsonField(amount, "currency") },
+        {
+          label: "Total Tagihan",
+          value: formatJsonCurrency(
+            getJsonField(amount, "billed"),
+            getJsonField(amount, "currency", "IDR"),
+          ),
+        },
+        {
+          label: "Tidak Dijamin",
+          value: formatJsonCurrency(
+            getJsonField(amount, "not_covered"),
+            getJsonField(amount, "currency", "IDR"),
+          ),
+        },
+        {
+          label: "Deductible",
+          value: formatJsonCurrency(
+            getJsonField(amount, "deductible"),
+            getJsonField(amount, "currency", "IDR"),
+          ),
+        },
+        {
+          label: "Co-pay",
+          value: formatJsonCurrency(
+            getJsonField(amount, "copay"),
+            getJsonField(amount, "currency", "IDR"),
+          ),
+        },
+        {
+          label: "Uang Pertanggungan",
+          value: formatJsonCurrency(
+            getJsonField(amount, "sum_assured"),
+            getJsonField(amount, "currency", "IDR"),
+          ),
+        },
+        {
+          label: "Nilai Dapat Dibayar",
+          value: formatJsonCurrency(
+            getJsonField(amount, "payable"),
+            getJsonField(amount, "currency", "IDR"),
+          ),
+        },
+        {
+          label: "Catatan Perhitungan",
+          value: getJsonField(amount, "calculation_note"),
+        },
+      ],
+      { startX },
+    );
+  }
+
+  // 7b. RINGKASAN HASIL ASSESSMENT (report_summary)
+  const reportSummary = getJsonField(data, "report_summary", {});
+  if (Object.keys(reportSummary).length > 0) {
+    drawTableSection(
+      doc,
+      "Ringkasan Hasil Assessment",
+      [
+        { label: "Status", value: getJsonField(reportSummary, "status_label") },
+        {
+          label: "Hasil Assessment",
+          value: getJsonField(reportSummary, "hasil_assessment"),
+        },
+        {
+          label: "Dasar Ketentuan",
+          value:
+            Array.isArray(reportSummary.dasar_ketentuan) &&
+            reportSummary.dasar_ketentuan.length > 0
+              ? reportSummary.dasar_ketentuan.join(", ")
+              : "-",
+        },
+      ],
+      { startX },
+    );
   }
 
   // 8. INFORMASI PROSES YANG MASIH RELEVAN UNTUK PENELITIAN
-  drawTableSection(doc, "Informasi Proses", [
-    { label: "Waktu Diterima", value: formatJsonDate(getJsonField(audit, "received_at")) },
-    { label: "Waktu Selesai", value: formatJsonDate(getJsonField(audit, "completed_at")) },
-    { label: "Durasi Proses", value: `${getJsonField(audit, "processing_seconds")} detik` },
-  ], { startX });
+  drawTableSection(
+    doc,
+    "Informasi Proses",
+    [
+      {
+        label: "Waktu Diterima",
+        value: formatJsonDate(getJsonField(audit, "received_at")),
+      },
+      {
+        label: "Waktu Selesai",
+        value: formatJsonDate(getJsonField(audit, "completed_at")),
+      },
+      {
+        label: "Durasi Proses",
+        value: `${getJsonField(audit, "processing_seconds")} detik`,
+      },
+      {
+        label: "Referensi Model",
+        value: getJsonField(audit, "model_reference"),
+      },
+      {
+        label: "Digest Input (Audit)",
+        value: getJsonField(audit, "input_digest"),
+      },
+    ],
+    { startX },
+  );
 
   // 9. STATUS RETENSI DATA - relevan untuk penelitian tata kelola data.
   if (Object.keys(retention).length > 0) {
-    drawTableSection(doc, "Status Retensi Data", [
-      { label: "Kebijakan Retensi", value: getJsonField(retention, "policy") },
-      { label: "Isi Data Dihapus", value: formatJsonBoolean(getJsonField(retention, "content_deleted")) },
-      { label: "Waktu Penghapusan", value: formatJsonDate(getJsonField(retention, "deleted_at")) },
-      { label: "Log yang Dipertahankan", value: getJsonField(retention, "log_retained") },
-    ], { startX });
+    drawTableSection(
+      doc,
+      "Status Retensi Data",
+      [
+        {
+          label: "Kebijakan Retensi",
+          value: getJsonField(retention, "policy"),
+        },
+        {
+          label: "Isi Data Dihapus",
+          value: formatJsonBoolean(getJsonField(retention, "content_deleted")),
+        },
+        {
+          label: "Waktu Penghapusan",
+          value: formatJsonDate(getJsonField(retention, "deleted_at")),
+        },
+        {
+          label: "Log yang Dipertahankan",
+          value: getJsonField(retention, "log_retained"),
+        },
+      ],
+      { startX },
+    );
   }
 };
 
@@ -922,38 +1512,29 @@ app.post(
   checkAuth,
   upload.single("json_file"),
   (req, res) => {
-
     if (!req.file) {
-      return res.status(400).send(
-        "Silakan pilih file JSON terlebih dahulu."
-      );
+      return res.status(400).send("Silakan pilih file JSON terlebih dahulu.");
     }
 
     const slot = Number(req.params.slot);
 
     if (![1, 2].includes(slot)) {
-      return res.status(400).send(
-        "Slot JSON tidak valid."
-      );
+      return res.status(400).send("Slot JSON tidak valid.");
     }
 
     try {
-
-      const parsedJson = JSON.parse(
-        req.file.buffer.toString("utf-8")
-      );
+      const parsedJson = JSON.parse(req.file.buffer.toString("utf-8"));
 
       const jsonString = JSON.stringify(parsedJson);
 
       const jsonFilePath = saveJsonUploadToDisk(
         req.file,
-        `${req.params.id}_json_${slot}`
+        `${req.params.id}_json_${slot}`,
       );
 
       let query;
 
       if (slot === 1) {
-
         query = `
           UPDATE cases
           SET
@@ -961,9 +1542,7 @@ app.post(
             json_file_path = ?
           WHERE id = ?
         `;
-
       } else {
-
         query = `
           UPDATE cases
           SET
@@ -971,39 +1550,25 @@ app.post(
             json_file_path_2 = ?
           WHERE id = ?
         `;
-
       }
 
-      db.query(
-        query,
-        [
-          jsonString,
-          jsonFilePath,
-          req.params.id
-        ],
-        (err) => {
-
-          if (err) {
-            return res.status(500).send(
-              "Database error: " + err.message
-            );
-          }
-
-          res.redirect(`/case/${req.params.id}`);
+      db.query(query, [jsonString, jsonFilePath, req.params.id], (err) => {
+        if (err) {
+          return res.status(500).send("Database error: " + err.message);
         }
-      );
 
+        res.redirect(`/case/${req.params.id}`);
+      });
     } catch (err) {
-
-      return res.status(400).send(
-        "File yang diunggah bukan format JSON yang valid."
-      );
-
+      return res
+        .status(400)
+        .send("File yang diunggah bukan format JSON yang valid.");
     }
-  }
+  },
 );
 /**
- * GENERATE CASE PDF REPORT (Tabel JSON Rapi & Dynamic Footer)
+ * GENERATE CASE PDF REPORT
+ * CLAIM ASSESSMENT + JSON 1 + JSON 2
  */
 app.get("/case/:id/pdf", checkAuth, (req, res) => {
   const query = `
@@ -1013,28 +1578,49 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
         WHERE c.id = ?`;
 
   db.query(query, [req.params.id], (err, results) => {
-    if (err) return res.status(500).send("Database error: " + err.message);
-    if (results.length === 0) return res.status(404).send("Case not found");
+    if (err) {
+      return res.status(500).send("Database error: " + err.message);
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send("Case not found");
+    }
 
     const caseData = results[0];
+
+    /*
+     * =========================================================
+     * BAGIAN INI TIDAK DIUBAH
+     * =========================================================
+     */
     const reportData = normalizeClaimAssessmentData(caseData);
 
-    const doc = new PDFDocument({ margin: 40, size: "A4", bufferPages: true });
+    const doc = new PDFDocument({
+      margin: 40,
+      size: "A4",
+      bufferPages: true,
+    });
 
     res.setHeader("Content-Type", "application/pdf");
+
     res.setHeader(
       "Content-Disposition",
       `inline; filename=Claim_Assessment_Case_${caseData.id}.pdf`,
     );
+
     doc.pipe(res);
 
     const logoPath = path.join(__dirname, "uploads", "logo.png");
 
-    // ================= HALAMAN 1: CLAIM ASSESSMENT =================
-    // Halaman pertama dibuat khusus sebagai ringkasan keputusan/assessment.
-    // Halaman kedua baru digunakan untuk ringkasan data JSON.
+    // =========================================================
+    // HALAMAN 1: CLAIM ASSESSMENT
+    // =========================================================
+
     if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 425, 24, { fit: [130, 42], align: "right" });
+      doc.image(logoPath, 425, 24, {
+        fit: [130, 42],
+        align: "right",
+      });
     }
 
     // Header dokumen
@@ -1042,7 +1628,9 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
       .fillColor("#0F2A4A")
       .font("Helvetica-Bold")
       .fontSize(17)
-      .text("CLAIM ASSESSMENT", 40, 28, { width: 360 });
+      .text("CLAIM ASSESSMENT", 40, 28, {
+        width: 360,
+      });
 
     doc
       .fillColor("#64748B")
@@ -1060,126 +1648,147 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
 
     doc.y = 80;
 
-    // Informasi ringkas dokumen/case
-    drawFixedAssessmentSection(doc, "INFORMASI POLIS", reportData.informasi_polis, {
-      startX: 40,
-      col1Width: 150,
-      col2Width: 365,
-      maxRowHeight: 31,
-    });
+    // =========================================================
+    // INFORMASI POLIS
+    // =========================================================
 
-    drawFixedAssessmentSection(doc, "INFORMASI KLAIM", reportData.informasi_klaim, {
-      startX: 40,
-      col1Width: 150,
-      col2Width: 365,
-      maxRowHeight: 34,
-    });
+    drawFixedAssessmentSection(
+      doc,
+      "INFORMASI POLIS",
+      reportData.informasi_polis,
+      {
+        startX: 40,
+        col1Width: 150,
+        col2Width: 365,
+        maxRowHeight: 31,
+      },
+    );
 
-    drawFixedAssessmentSection(doc, "HASIL CLAIM ASSESSMENT", reportData.claim_assesment, {
-      startX: 40,
-      col1Width: 150,
-      col2Width: 365,
-      maxRowHeight: 34,
-    });
+    // =========================================================
+    // INFORMASI KLAIM
+    // =========================================================
 
-    // Penanda bahwa halaman ini adalah halaman keputusan/assessment,
-    // sedangkan rincian JSON berada pada halaman berikutnya.
+    drawFixedAssessmentSection(
+      doc,
+      "INFORMASI KLAIM",
+      reportData.informasi_klaim,
+      {
+        startX: 40,
+        col1Width: 150,
+        col2Width: 365,
+        maxRowHeight: 34,
+      },
+    );
+
+    // =========================================================
+    // HASIL CLAIM ASSESSMENT
+    // =========================================================
+
+    drawFixedAssessmentSection(
+      doc,
+      "HASIL CLAIM ASSESSMENT",
+      reportData.claim_assesment,
+      {
+        startX: 40,
+        col1Width: 150,
+        col2Width: 365,
+        maxRowHeight: 34,
+      },
+    );
+
+    // =========================================================
+    // CATATAN
+    // =========================================================
+
     const noteY = Math.min(doc.y + 2, doc.page.height - 82);
+
     doc.fillColor("#F1F5F9").roundedRect(40, noteY, 515, 30, 4).fill();
-    doc.fillColor("#475569").font("Helvetica-Oblique").fontSize(7.5)
+
+    doc
+      .fillColor("#475569")
+      .font("Helvetica-Oblique")
+      .fontSize(7.5)
       .text(
         "Catatan: rincian data sumber dan hasil evaluasi JSON disajikan mulai halaman berikutnya.",
         50,
         noteY + 9,
-        { width: 495, align: "center" },
+        {
+          width: 495,
+          align: "center",
+        },
       );
+
     doc.y = noteY + 38;
 
-    // ======================================================
-// RINGKASAN DATA JSON 1
-// ======================================================
+    // =========================================================
+    // =========================================================
+    // JSON 1
+    // =========================================================
+    // =========================================================
 
-const json1 = parseJsonForPdf(caseData.json_data);
+    const json1 = parseJsonForPdf(caseData.json_data);
 
-if (json1 && Object.keys(json1).length > 0) {
+    if (json1 && Object.keys(json1).length > 0) {
+      doc.addPage();
 
-  doc.addPage();
+      doc
+        .fillColor("#0F2A4A")
+        .font("Helvetica-Bold")
+        .fontSize(14)
+        .text("RINGKASAN DATA JSON 1", 40, 40, { width: 515 });
 
-  doc
-    .fillColor("#0F2A4A")
-    .font("Helvetica-Bold")
-    .fontSize(14)
-    .text(
-      "RINGKASAN DATA JSON 1",
-      40,
-      40,
-      { width: 515 }
-    );
+      doc
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(8.5)
+        .text("Informasi yang berasal dari JSON pertama.", 40, 62, {
+          width: 515,
+        });
 
-  doc
-    .fillColor("#64748B")
-    .font("Helvetica")
-    .fontSize(8.5)
-    .text(
-      "Informasi yang berasal dari JSON pertama.",
-      40,
-      62,
-      { width: 515 }
-    );
+      doc.y = 85;
 
-  doc.y = 85;
+      drawJsonAsTable(doc, json1, 40);
+    }
 
-  drawJsonAsTable(
-    doc,
-    json1,
-    40
-  );
-}
+    // =========================================================
+    // =========================================================
+    // JSON 2
+    // =========================================================
+    // =========================================================
 
+    const json2 = parseJsonForPdf(caseData.json_data_2);
 
-// ======================================================
-// RINGKASAN DATA JSON 2
-// ======================================================
+    if (json2 && Object.keys(json2).length > 0) {
+      doc.addPage();
 
-const json2 = parseJsonForPdf(caseData.json_data_2);
+      doc
+        .fillColor("#0F2A4A")
+        .font("Helvetica-Bold")
+        .fontSize(14)
+        .text("RINGKASAN DATA JSON 2", 40, 40, { width: 515 });
 
-if (json2 && Object.keys(json2).length > 0) {
+      doc
+        .fillColor("#64748B")
+        .font("Helvetica")
+        .fontSize(8.5)
+        .text("Informasi yang berasal dari JSON kedua.", 40, 62, {
+          width: 515,
+        });
 
-  doc.addPage();
+      doc.y = 85;
 
-  doc
-    .fillColor("#0F2A4A")
-    .font("Helvetica-Bold")
-    .fontSize(14)
-    .text(
-      "RINGKASAN DATA JSON 2",
-      40,
-      40,
-      { width: 515 }
-    );
+      drawJsonAsTable(doc, json2, 40);
+    }
 
-  doc
-    .fillColor("#64748B")
-    .font("Helvetica")
-    .fontSize(8.5)
-    .text(
-      "Informasi yang berasal dari JSON kedua.",
-      40,
-      62,
-      { width: 515 }
-    );
+    // =========================================================
+    // SELESAI
+    // =========================================================
 
-  doc.y = 85;
+    // Tidak menggunakan footer,
+    // nomor halaman, atau page break manual tambahan.
+    // Page break yang ada hanya untuk memisahkan
+    // Claim Assessment, JSON 1, dan JSON 2.
 
-  drawJsonAsTable(
-    doc,
-    json2,
-    40
-  );
-}
-
-    // Tidak menggunakan footer, nomor halaman, atau page break manual.
-    // PDFKit hanya akan menambah halaman jika konten memang melewati batas halaman.
     doc.end();
   });
 });
