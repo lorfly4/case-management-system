@@ -558,9 +558,21 @@
                 });
             });
 
-            // --- Auto-calculate Usia Polis dari Tanggal Issued Polis s.d. Tanggal Meninggal ---
+            const hospitalType = 'Klaim Hospital';
+            const nonHospitalType = 'Klaim Non Hospital';
+            const claimKindCaseType = {
+                'Klaim rawat inap': hospitalType,
+                'Klaim perawatan 1 hari': hospitalType,
+                'Klaim Meninggal Dunia': nonHospitalType,
+                'Klaim Penyakit Kritis': nonHospitalType,
+                'Credit Life': nonHospitalType
+            };
+
+            // --- Auto-calculate Usia Polis dari Tanggal Issued Polis s.d. Tanggal Meninggal/Tanggal Klaim ---
             const policyIssuedDateInput = document.getElementById('tanggal_issued_polis');
             const deathDateInput = document.getElementById('tanggal_meninggal');
+            const causeOfDeathInput = document.getElementById('penyebab_meninggal');
+            const claimEventDateInput = document.getElementById('incident_date'); // "Tanggal Kejadian Klaim" di section Data Klaim dan Penerima Manfaat
             const policyAgeInput = document.getElementById('usia_polis');
 
             const calculatePolicyAge = (startDateStr, endDateStr) => {
@@ -592,24 +604,19 @@
             };
 
             const updatePolicyAge = () => {
-                if (!policyIssuedDateInput.value || !deathDateInput.value) return;
-                const result = calculatePolicyAge(policyIssuedDateInput.value, deathDateInput.value);
+                const isHospital = category.value === hospitalType;
+                // Klaim Hospital: Usia Polis = Tanggal Issued Polis s.d. Tanggal Kejadian Klaim
+                // Klaim Non Hospital: Usia Polis = Tanggal Issued Polis s.d. Tanggal Meninggal
+                const endDateInput = isHospital ? claimEventDateInput : deathDateInput;
+                if (!policyIssuedDateInput.value || !endDateInput.value) return;
+                const result = calculatePolicyAge(policyIssuedDateInput.value, endDateInput.value);
                 if (result) policyAgeInput.value = result;
             };
 
             policyIssuedDateInput.addEventListener('change', updatePolicyAge);
             deathDateInput.addEventListener('change', updatePolicyAge);
-            updatePolicyAge(); // hitung otomatis saat halaman dimuat (mode edit, jika kedua tanggal sudah terisi)
-
-            const hospitalType = 'Klaim Hospital';
-            const nonHospitalType = 'Klaim Non Hospital';
-            const claimKindCaseType = {
-                'Klaim rawat inap': hospitalType,
-                'Klaim perawatan 1 hari': hospitalType,
-                'Klaim Meninggal Dunia': nonHospitalType,
-                'Klaim Penyakit Kritis': nonHospitalType,
-                'Credit Life': nonHospitalType
-            };
+            claimEventDateInput.addEventListener('change', updatePolicyAge);
+            updatePolicyAge(); // hitung otomatis saat halaman dimuat (mode edit, jika tanggal terkait sudah terisi)
 
             const updateClaimFields = () => {
                 const isHospital = category.value === hospitalType;
@@ -624,6 +631,12 @@
                     input.disabled = !isNonHospital;
                 });
                 policyClaimType.value = category.value;
+
+                // Klaim Hospital: Tanggal & Penyebab Meninggal tidak relevan -> dibuat readonly
+                deathDateInput.readOnly = isHospital;
+                causeOfDeathInput.readOnly = isHospital;
+
+                updatePolicyAge();
             };
             const updateHospitalTotal = () => {
                 const complete = hospitalCosts.every((input) => input.value !== '');
