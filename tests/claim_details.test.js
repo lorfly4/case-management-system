@@ -61,6 +61,16 @@ test('buildClaimDetails aligns case type with the granular claim kind', () => {
   assert.equal(nonHospital.category, 'Klaim Non Hospital');
 });
 
+test('buildClaimDetails preserves mixed case type when a claim kind is selected', () => {
+  const details = buildClaimDetails({
+    case_type: 'Klaim Campuran',
+    claim_kind: 'Klaim Meninggal Dunia',
+  });
+
+  assert.equal(details.category, 'Klaim Campuran');
+  assert.equal(parseClaimDetails(JSON.stringify(details)).category, 'Klaim Campuran');
+});
+
 test('buildPdfClaimSections prints hospital costs only for Hospital claims', () => {
   const sections = buildPdfClaimSections(
     { case_type: 'Klaim Hospital' },
@@ -100,4 +110,19 @@ test('buildPdfClaimSections prints Non Hospital benefits and uploaded documents'
   assert.ok(!sectionTitles.includes('RINCIAN KLAIM HOSPITAL'));
   const verification = sections.find((section) => section.title === 'DOKUMEN DAN VERIFIKASI');
   assert.ok(verification.rows.at(-1).value.includes('Dokumen identitas: identitas.pdf'));
+});
+
+test('buildPdfClaimSections includes Hospital and Non Hospital details for mixed claims', () => {
+  const sections = buildPdfClaimSections(
+    { case_type: 'Klaim Campuran' },
+    JSON.stringify({
+      category: 'Klaim Campuran',
+      hospital: { costs: { room: 1000000 } },
+      non_hospital: { approved_amount: 500000 },
+    }),
+  );
+
+  const sectionTitles = sections.map((section) => section.title);
+  assert.ok(sectionTitles.includes('RINCIAN KLAIM HOSPITAL'));
+  assert.ok(sectionTitles.includes('RINCIAN KLAIM NON HOSPITAL'));
 });

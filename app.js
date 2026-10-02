@@ -133,9 +133,17 @@ const ensureClaimCaseTypeColumn = () => {
   return new Promise((resolve, reject) => {
     db.query('SHOW COLUMNS FROM cases LIKE "case_type"', (err, results) => {
       if (err) return reject(err);
-      if (results.length > 0) return resolve();
+      if (results.length > 0) {
+        const caseTypeColumn = results[0];
+        if (caseTypeColumn.Type.includes("Klaim Campuran")) return resolve();
+        const nullability = caseTypeColumn.Null === "YES" ? "NULL" : "NOT NULL";
+        return db.query(
+          "ALTER TABLE cases MODIFY COLUMN case_type ENUM('Klaim Hospital', 'Klaim Non Hospital', 'Klaim Campuran') " + nullability,
+          (alterErr) => (alterErr ? reject(alterErr) : resolve()),
+        );
+      }
       db.query(
-        "ALTER TABLE cases ADD COLUMN case_type ENUM('Klaim Hospital', 'Klaim Non Hospital') NULL AFTER id",
+        "ALTER TABLE cases ADD COLUMN case_type ENUM('Klaim Hospital', 'Klaim Non Hospital', 'Klaim Campuran') NULL AFTER id",
         (alterErr) => (alterErr ? reject(alterErr) : resolve()),
       );
     });
@@ -2060,7 +2068,7 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
   if (!CASE_TYPES.includes(req.body.case_type)) {
     Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
     return res.status(400).render("pages/case_form_new", {
-      message: "Pilih Case Type Klaim Hospital atau Klaim Non Hospital.",
+      message: "Pilih Case Type Klaim Hospital, Klaim Non Hospital, atau Klaim Campuran.",
       caseItem: null,
       claimData,
       caseTypes: CASE_TYPES,
@@ -2167,7 +2175,7 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
   const claimData = buildClaimDetails(req.body);
   if (!CASE_TYPES.includes(req.body.case_type)) {
     Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
-    return res.status(400).send("Pilih Case Type Klaim Hospital atau Klaim Non Hospital.");
+    return res.status(400).send("Pilih Case Type Klaim Hospital, Klaim Non Hospital, atau Klaim Campuran.");
   }
 
   const sql = `UPDATE cases SET case_type = ?, title = ?, description = ?, priority = ?, status = ?,

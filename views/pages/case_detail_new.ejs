@@ -151,7 +151,7 @@
                                 <div class="col-md-3">
                                     <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Case Type</label>
                                     <p class="mb-0">
-                                        <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Klaim Non Hospital' ? 'success' : 'secondary') %> px-3 py-2">
+                                        <span class="badge badge-<%= caseItem.case_type === 'Klaim Hospital' ? 'primary' : (caseItem.case_type === 'Klaim Non Hospital' ? 'success' : (caseItem.case_type === 'Klaim Campuran' ? 'warning' : 'secondary')) %> px-3 py-2">
                                             <i class="fas fa-tag me-1"></i><%= caseItem.case_type || claimData?.category || 'Belum ditentukan' %>
                                         </span>
                                     </p>
@@ -227,7 +227,7 @@
                                     <div class="col-md-3"><small class="text-muted d-block">Manfaat yang Diklaim</small><strong><%= claimData.policy?.claimed_benefit || '-' %></strong></div>
                                     <div class="col-md-3"><small class="text-muted d-block">Nilai Pertanggungan</small><strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.policy?.sum_insured || 0) %></strong></div>
                                 </div>
-                                <% if ((claimData.category || caseItem.case_type) === 'Klaim Hospital') { %>
+                                <% if (['Klaim Hospital', 'Klaim Campuran'].includes(claimData.category || caseItem.case_type)) { %>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered mb-2">
                                         <thead class="table-light"><tr><th>Komponen Biaya</th><th class="text-end">Jumlah (Rp)</th></tr></thead>
@@ -240,7 +240,8 @@
                                     </table>
                                 </div>
                                 <p class="mb-0">Klaim yang Diajukan: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.hospital?.submitted_amount || 0) %></strong></p>
-                                <% } else if ((claimData.category || caseItem.case_type) === 'Klaim Non Hospital') { %>
+                                <% } %>
+                                <% if (['Klaim Non Hospital', 'Klaim Campuran'].includes(claimData.category || caseItem.case_type)) { %>
                                 <div class="row g-3">
                                     <div class="col-md-4">UP yang Diajukan: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.requested_sum_insured || 0) %></strong></div>
                                     <div class="col-md-4">Manfaat Nominal Klaim: <strong>Rp <%= new Intl.NumberFormat('id-ID').format(claimData.non_hospital?.benefit_amount || 0) %></strong></div>

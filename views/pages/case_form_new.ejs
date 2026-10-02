@@ -500,7 +500,7 @@
                                 </div>
                                 <div class="card-body text-sm">
                                     <p><strong>Case Number:</strong> Unique identifier for the case</p>
-                                    <p><strong>Case Type:</strong> Klaim Hospital atau Klaim Non Hospital</p>
+                                    <p><strong>Case Type:</strong> Klaim Hospital, Klaim Non Hospital, atau Klaim Campuran</p>
                                     <p><strong>Priority:</strong> Urgency level (Low, Medium, High)</p>
                                     <p><strong>Status:</strong> Current stage of the case</p>
                                     <div class="alert alert-info alert-sm" role="alert">
@@ -562,6 +562,7 @@
 
             const hospitalType = 'Klaim Hospital';
             const nonHospitalType = 'Klaim Non Hospital';
+            const mixedType = 'Klaim Campuran';
             const claimKindCaseType = {
                 'Klaim rawat inap': hospitalType,
                 'Klaim perawatan 1 hari': hospitalType,
@@ -606,13 +607,12 @@
             };
 
             const updatePolicyAge = () => {
-                const isHospital = category.value === hospitalType;
-                // Klaim Hospital: Usia Polis = Tanggal Issued Polis s.d. Tanggal Kejadian Klaim
-                // Klaim Non Hospital: Usia Polis = Tanggal Issued Polis s.d. Tanggal Meninggal
-                const endDateInput = isHospital ? claimEventDateInput : deathDateInput;
-                if (!policyIssuedDateInput.value || !endDateInput.value) return;
-                const result = calculatePolicyAge(policyIssuedDateInput.value, endDateInput.value);
-                if (result) policyAgeInput.value = result;
+                const endDateInput = category.value === hospitalType ? claimEventDateInput : deathDateInput;
+                if (!policyIssuedDateInput.value || !endDateInput.value) {
+                    policyAgeInput.value = '';
+                    return;
+                }
+                policyAgeInput.value = calculatePolicyAge(policyIssuedDateInput.value, endDateInput.value);
             };
 
             policyIssuedDateInput.addEventListener('change', updatePolicyAge);
@@ -621,8 +621,9 @@
             updatePolicyAge(); // hitung otomatis saat halaman dimuat (mode edit, jika tanggal terkait sudah terisi)
 
             const updateClaimFields = () => {
-                const isHospital = category.value === hospitalType;
-                const isNonHospital = category.value === nonHospitalType;
+                const isMixed = category.value === mixedType;
+                const isHospital = category.value === hospitalType || isMixed;
+                const isNonHospital = category.value === nonHospitalType || isMixed;
                 hospitalFields.hidden = !isHospital;
                 nonHospitalFields.hidden = !isNonHospital;
                 hospitalCosts.forEach((input) => {
@@ -635,8 +636,8 @@
                 policyClaimType.value = category.value;
 
                 // Klaim Hospital: Tanggal & Penyebab Meninggal tidak relevan -> dibuat readonly
-                deathDateInput.readOnly = isHospital;
-                causeOfDeathInput.readOnly = isHospital;
+                deathDateInput.readOnly = category.value === hospitalType;
+                causeOfDeathInput.readOnly = category.value === hospitalType;
 
                 updatePolicyAge();
             };
@@ -649,13 +650,13 @@
             };
 
             category.addEventListener('change', () => {
-                if (claimKindCaseType[claimKind.value] && claimKindCaseType[claimKind.value] !== category.value) {
+                if (category.value !== mixedType && claimKindCaseType[claimKind.value] && claimKindCaseType[claimKind.value] !== category.value) {
                     claimKind.value = '';
                 }
                 updateClaimFields();
             });
             claimKind.addEventListener('change', () => {
-                if (claimKindCaseType[claimKind.value]) category.value = claimKindCaseType[claimKind.value];
+                if (category.value !== mixedType && claimKindCaseType[claimKind.value]) category.value = claimKindCaseType[claimKind.value];
                 updateClaimFields();
             });
             hospitalCosts.forEach((input) => {
