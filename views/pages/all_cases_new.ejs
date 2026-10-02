@@ -108,12 +108,14 @@
                             <h1 class="m-0">All Cases</h1>
                         </div>
                         <div class="col-sm-6 text-end">
+                            <% if (role === 'admin' || role === 'spv') { %>
                             <a href="/case/new" class="btn btn-primary btn-sm">
                                 <i class="fas fa-plus me-2"></i>Create Case
                             </a>
                             <a href="/import-cases" class="btn btn-success btn-sm ms-2">
                                 <i class="fas fa-file-excel me-2"></i>Import Excel
                             </a>
+                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -271,6 +273,7 @@
                 "columnDefs": [
                     { "type": "num", "targets": 0 }
                 ],
+                <% if (role === 'admin' || role === 'spv') { %>
                 "dom": '<"d-flex justify-content-between align-items-center mb-3"lBf>rtip',
                 "buttons": [
                     {
@@ -283,6 +286,9 @@
                         }
                     }
                 ]
+                <% } else { %>
+                "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rtip'
+                <% } %>
             });
 
             // Load users for PIC assignment dropdown
