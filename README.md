@@ -57,6 +57,8 @@ Sistem bagi-bagi case yang merata dengan fitur monitoring, distribusi, dan track
 
 ## Installation & Setup
 
+Untuk deployment production di VPS Ubuntu, lihat [panduan deployment Ubuntu](./deploy/ubuntu-25/README.md).
+
 ### 1. **Database Setup**
 ```bash
 # Buka MySQL

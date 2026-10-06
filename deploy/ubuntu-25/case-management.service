@@ -1,0 +1,25 @@
+[Unit]
+Description=Case Management System
+Wants=network-online.target
+After=network-online.target mysql.service
+
+[Service]
+Type=simple
+User=caseapp
+Group=caseapp
+WorkingDirectory=/opt/case-management-system
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node /opt/case-management-system/app.js
+Restart=on-failure
+RestartSec=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/case-management-system/uploads
+
+[Install]
+WantedBy=multi-user.target

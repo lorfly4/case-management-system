@@ -45,6 +45,14 @@ fs.mkdirSync(path.join(__dirname, "uploads", "case-documents"), {
   recursive: true,
 });
 
+// Folder tujuan dokumen (shared folder). Jika kosong, memakai klien SMB.
+if (process.env.UPLOAD_DIR) {
+  fs.mkdirSync(process.env.UPLOAD_DIR, { recursive: true });
+  console.log("Dokumen disimpan ke folder lokal:", process.env.UPLOAD_DIR);
+} else {
+  console.log("UPLOAD_DIR tidak di-set, dokumen disimpan lewat SMB (SMB_SHARE).");
+}
+
 // --- DATABASE CONNECTION ---
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -221,12 +229,19 @@ app.use("/images", express.static(path.join(__dirname, "views", "pages", "images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+if (process.env.TRUST_PROXY === "1") {
+  app.set("trust proxy", 1);
+}
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 },
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.COOKIE_SECURE === "true",
+      sameSite: "lax",
+    },
   }),
 );
 
@@ -2233,10 +2248,19 @@ app.post("/case/:id/delete", checkAuth, (req, res) => {
     return res.status(403).send("Unauthorized Access");
   }
 
-  const sql = "DELETE FROM cases WHERE id = ?";
-  db.query(sql, [req.params.id], (err, result) => {
-    if (err) throw err;
-    res.redirect("/all-cases");
+  // Ambil daftar file dulu, hapus data case, lalu hapus file di shared folder
+  db.query("SELECT filename FROM case_documents WHERE case_id = ?", [req.params.id], (selErr, docs) => {
+    if (selErr) return res.status(500).send(selErr.message);
+
+    db.query("DELETE FROM cases WHERE id = ?", [req.params.id], async (err) => {
+      if (err) return res.status(500).send(err.message);
+      for (const doc of docs) {
+        if (isSharedFolderPath(doc.filename)) {
+          await deleteFromSharedFolder(doc.filename).catch(() => {});
+        }
+      }
+      res.redirect("/all-cases");
+    });
   });
 });
 
@@ -2773,7 +2797,8 @@ app.use((req, res) => {
 
 // --- PORT SETUP ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const HOST = process.env.HOST || "0.0.0.0";
+app.listen(PORT, HOST, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
