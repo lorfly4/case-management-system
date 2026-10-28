@@ -1,11 +1,11 @@
-case_type,title,description,priority,status
-Klaim Hospital,Klaim rawat inap demam berdarah - demo,Perawatan inap dan pemeriksaan laboratorium,High,Unassigned
-Klaim Hospital,Klaim operasi usus buntu - demo,Tindakan operasi dan rawat inap,High,Unassigned
-Klaim Hospital,Klaim persalinan - demo,Perawatan persalinan dan biaya rumah sakit,Medium,Unassigned
-Klaim Hospital,Klaim perawatan pneumonia - demo,Rawat inap dan radiologi paru,High,In Progress
-Klaim Hospital,Klaim observasi satu hari - demo,Perawatan observasi dan biaya dokter,Low,Unassigned
-Klaim Non Hospital,Klaim meninggal dunia - demo,Manfaat meninggal dunia untuk penerima manfaat,High,Unassigned
-Klaim Non Hospital,Klaim penyakit kritis - demo,Manfaat penyakit kritis berdasarkan diagnosis dokter,High,In Progress
-Klaim Non Hospital,Klaim credit life - demo,Pelunasan manfaat kredit sesuai ketentuan polis,Medium,Unassigned
-Klaim Non Hospital,Klaim kecelakaan meninggal dunia - demo,Verifikasi kejadian dan dokumen penerima manfaat,High,On Hold
-Klaim Non Hospital,Klaim penyakit kritis jantung - demo,Review manfaat untuk diagnosis penyakit jantung,Medium,Unassigned
+title,case_type,description,priority,status
+Klaim rawat inap RS Harapan Sehat - Budi Santoso,Klaim Hospital,Pasien dirawat 5 hari dengan diagnosis demam berdarah. Dokumen lengkap.,High,In Progress
+Klaim rawat jalan Klinik Sehat Sentosa,Klaim Non Hospital,Konsultasi dokter umum dan pembelian obat.,Low,Unassigned
+Klaim operasi usus buntu - Siti Rahmawati,Klaim Hospital,Operasi appendectomy di RS Mitra Keluarga. Menunggu surat rujukan.,High,On Hold
+Klaim kacamata dan pemeriksaan mata,Klaim Non Hospital,Penggantian lensa dan frame sesuai manfaat rawat jalan.,Low,Closed
+Klaim kecelakaan lalu lintas - Andi Pratama,Klaim Campuran,Perawatan IGD dan rawat inap di rumah sakit serta fisioterapi di klinik luar.,High,In Progress
+Klaim persalinan normal - Dewi Lestari,Klaim Hospital,Persalinan normal di RS Bunda dengan rawat inap 2 hari.,Medium,Closed
+Klaim perawatan gigi - Rudi Hartono,Klaim Non Hospital,,Low,Unassigned
+Klaim medical check up tahunan PT Maju Jaya,Klaim Non Hospital,Pemeriksaan kesehatan rutin untuk 25 karyawan.,Medium,In Progress
+Klaim operasi katarak - Hj. Aminah,Klaim Hospital,Operasi katarak mata kanan. Perlu verifikasi biaya kamar.,Medium,On Hold
+Klaim kemoterapi dan obat penunjang - Agus Wijaya,Klaim Campuran,Kemoterapi siklus ke-3 di rumah sakit dan pembelian obat di apotek luar.,High,In Progress
