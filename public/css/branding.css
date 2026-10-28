@@ -1,0 +1,30 @@
+.main-sidebar .brand-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4.5rem;
+    padding: 0.5rem;
+    overflow: hidden;
+    background-color: #f7f7f7;
+}
+
+.main-sidebar .brand-link .jamkrida-logo {
+    display: block;
+    width: 100%;
+    max-width: 230px;
+    height: auto;
+    max-height: none;
+    margin: 0;
+    float: none;
+    object-fit: contain;
+}
+
+.jamkrida-login-logo {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 0 auto;
+    background-color: #f7f7f7;
+    border-radius: 0.25rem;
+}

@@ -2275,7 +2275,7 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
 
     doc.pipe(res);
 
-    const logoPath = path.join(__dirname, "uploads", "logo.png");
+    const logoPath = path.join(__dirname, "views", "pages", "images", "logo.jpeg");
 
     // =========================================================
     // HALAMAN 1: CLAIM ASSESSMENT
