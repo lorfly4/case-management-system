@@ -1,0 +1,530 @@
+{
+  "schema_version": "0.4",
+  "processing_id": "OK-20260930-000012",
+  "request_ref": {
+    "tpa_claim_id": "CLM-DEMO-0004",
+    "received_at": "2026-09-30T09:38:25+07:00"
+  },
+  "line_of_business": "health",
+  "claim_type": "hospitalization",
+  "claim_category": "kesehatan",
+  "claim_types": [
+    "hospitalization"
+  ],
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "0.1.0",
+    "ruleset_version": "TC-HEALTH-DESWA-v1.0"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+      "document_type": "claim_form",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.98,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0004.pdf#hal-2-2",
+      "document_type": "other",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.98,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0004.pdf#hal-3-3",
+      "document_type": "medical_resume",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.98,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0004.pdf#hal-4-4",
+      "document_type": "invoice",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.98,
+        "legible": true,
+        "issues": []
+      }
+    }
+  ],
+  "extracted_data": {
+    "policy_info": {
+      "policy_number": {
+        "value": "POL-HS-2025-011045",
+        "origin": "extracted",
+        "confidence": 0.99,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "policyholder_name": {
+        "value": "Budi Santoso",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "product_name": {
+        "value": "MediCare Plus (Rawat Inap)",
+        "origin": "extracted",
+        "confidence": 0.98,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "policy_issue_date": {
+        "value": null,
+        "origin": "not_found"
+      },
+      "policy_effective_date": {
+        "value": "2025-01-01",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "sum_assured": {
+        "value": null,
+        "origin": "not_found"
+      },
+      "policy_status": {
+        "value": "in_force",
+        "origin": "extracted",
+        "raw_text": "Aktif",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "policy_age_months": {
+        "value": 19,
+        "origin": "derived",
+        "note": "Dari 2025-01-01 sampai tanggal kejadian 2026-08-01"
+      }
+    },
+    "insured_info": {
+      "insured_name": {
+        "value": "Budi Santoso",
+        "origin": "extracted",
+        "confidence": 0.98,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "date_of_birth": {
+        "value": "1980-01-01",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "gender": {
+        "value": "L",
+        "origin": "extracted",
+        "raw_text": "Laki-laki",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "occupation": {
+        "value": null,
+        "origin": "not_found"
+      },
+      "address": {
+        "value": "Jl. Melati No. 12, Jakarta Selatan",
+        "origin": "extracted",
+        "confidence": 0.96,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "id_number_masked": {
+        "value": "************0001",
+        "origin": "extracted",
+        "raw_text": "3174010101800001",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      }
+    },
+    "claimant_info": {
+      "claimant_name": {
+        "value": "Budi Santoso",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "relationship_to_insured": {
+        "value": "Diri sendiri",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "phone": {
+        "value": "0812****2222",
+        "origin": "extracted",
+        "raw_text": "081211112222",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "claim_submission_date": {
+        "value": "2026-08-06",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "beneficiary_name": {
+        "value": null,
+        "origin": "not_found"
+      },
+      "bank_name": {
+        "value": "Bank Contoh Nusantara",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "account_number_masked": {
+        "value": "******3210",
+        "origin": "extracted",
+        "raw_text": "9876543210",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-1-1",
+          "page": 1
+        }
+      }
+    },
+    "claim_info": {
+      "event_date": {
+        "value": "2026-08-01",
+        "origin": "extracted",
+        "confidence": 0.9
+      },
+      "brief_chronology": {
+        "value": "Pasien Budi Santoso mengalami demam tinggi mendadak selama 3 hari disertai nyeri otot, didiagnosis Demam Berdarah Dengue (A91) berdasarkan pemeriksaan trombosit rendah (85.000/uL) dan NS1 positif, kemudian menjalani rawat inap di RS Sehat Sentosa dari 2026-08-01 hingga 2026-08-04 dengan tindakan infus cairan dan observasi trombosit.",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0004.pdf#hal-3-3",
+          "page": 3
+        }
+      },
+      "hospitalization": {
+        "provider_name": {
+          "value": "RS Sehat Sentosa (fiktif)",
+          "origin": "extracted",
+          "confidence": 0.9
+        },
+        "admission_date": {
+          "value": "2026-08-01",
+          "origin": "extracted",
+          "confidence": 0.9
+        },
+        "discharge_date": {
+          "value": "2026-08-04",
+          "origin": "extracted",
+          "confidence": 0.9
+        },
+        "diagnosis_text": {
+          "value": "Demam Berdarah Dengue (A91)",
+          "origin": "extracted",
+          "confidence": 0.9
+        },
+        "icd10_code": {
+          "value": "A91",
+          "origin": "extracted",
+          "confidence": 0.9
+        },
+        "invoice_total": {
+          "value": 7900000,
+          "origin": "extracted",
+          "confidence": 0.9
+        }
+      }
+    }
+  },
+  "policy_evaluation": {
+    "benefit_code": "IP-001",
+    "rules": [
+      {
+        "rule_id": "CV-001",
+        "description": "Tanggal pelayanan berada dalam periode pertanggungan.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Health Pasal 3"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "MB-001",
+        "description": "Peserta berstatus aktif pada tanggal pelayanan.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Health Pasal 4"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "BN-001",
+        "description": "Manfaat rawat inap tercantum dalam Schedule of Benefits (Pasal 5–6).",
+        "verdict": "indeterminate",
+        "source_clause": {
+          "reference": "TC Health Pasal 5"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "WP-001",
+        "description": "Masa tunggu telah terlewati pada tanggal pelayanan.",
+        "verdict": "not_applicable",
+        "source_clause": {
+          "reference": "TC Health Pasal 11"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "PEC-001",
+        "description": "Tidak teridentifikasi Pre-Existing Condition pada dokumen.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Health Pasal 15"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "EX-001",
+        "description": "Tidak ada biaya/kondisi yang secara tegas dikecualikan.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Health Pasal 16"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "LM-001",
+        "description": "Biaya eligible dibatasi limit manfaat (termasuk limit kamar, Pasal 8).",
+        "verdict": "not_applicable",
+        "source_clause": {
+          "reference": "TC Health Pasal 7"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "DC-001",
+        "description": "Deductible diterapkan sesuai ketentuan polis.",
+        "verdict": "not_applicable",
+        "source_clause": {
+          "reference": "TC Health Pasal 9"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "CP-001",
+        "description": "Co-payment diterapkan sesuai ketentuan polis.",
+        "verdict": "not_applicable",
+        "source_clause": {
+          "reference": "TC Health Pasal 10"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "DOC-001",
+        "description": "Dokumen klaim material lengkap.",
+        "verdict": "indeterminate",
+        "source_clause": {
+          "reference": "TC Health Pasal 22"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      },
+      {
+        "rule_id": "HR-001",
+        "description": "Tidak ada ambiguitas/konflik yang mewajibkan Human Review.",
+        "verdict": "indeterminate",
+        "source_clause": {
+          "reference": "TC Health Pasal 27"
+        },
+        "evaluated_at": "2026-09-30T09:39:19+07:00",
+        "benefit_code": "IP-001"
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "needs_human_review",
+    "confidence": 0.9,
+    "reasons": [
+      {
+        "rule_id": "BN-001",
+        "summary": "Schedule of Benefits produk tidak tersedia; manfaat rawat inap tidak dapat dipastikan (Pasal 5–6)."
+      },
+      {
+        "rule_id": "DOC-001",
+        "summary": "Dokumen tidak ditemukan: Resep Obat, Surat Rujukan. T&C tidak menetapkan daftar dokumen wajib; analis menilai apakah material (Pasal 22/24)."
+      },
+      {
+        "rule_id": "WP-001",
+        "summary": "Tidak ada ketentuan mengenai masa tunggu dalam T&C; tidak diterapkan."
+      },
+      {
+        "rule_id": "LM-001",
+        "summary": "Tidak ada ketentuan mengenai limit manfaat maupun limit kamar per hari dalam T&C; tidak diterapkan."
+      },
+      {
+        "rule_id": "DC-001",
+        "summary": "Tidak ada ketentuan mengenai deductible dalam T&C; tidak diterapkan."
+      },
+      {
+        "rule_id": "CP-001",
+        "summary": "Tidak ada ketentuan mengenai co-payment dalam T&C; tidak diterapkan."
+      }
+    ],
+    "human_review": {
+      "required": true,
+      "triggers": [
+        "benefit_not_in_schedule",
+        "incomplete_data",
+        "ambiguous_wording"
+      ],
+      "notes": "Schedule of Benefits produk tidak tersedia; manfaat rawat inap tidak dapat dipastikan (Pasal 5–6). Dokumen tidak ditemukan: Resep Obat, Surat Rujukan. T&C tidak menetapkan daftar dokumen wajib; analis menilai apakah material (Pasal 22/24). Tidak ada ketentuan mengenai masa tunggu dalam T&C; tidak diterapkan.",
+      "missing_items": [
+        "policy_issue_date",
+        "sum_assured"
+      ]
+    }
+  },
+  "report_summary": {
+    "status_label": "Needs Review",
+    "hasil_assessment": "Perlu review analis. Schedule of Benefits produk tidak tersedia; manfaat rawat inap tidak dapat dipastikan (Pasal 5–6). Dokumen tidak ditemukan: Resep Obat, Surat Rujukan. T&C tidak menetapkan daftar dokumen wajib; analis menilai apakah material (Pasal 22/24).",
+    "dasar_ketentuan": [
+      "TC Health Pasal 3",
+      "TC Health Pasal 4",
+      "TC Health Pasal 5",
+      "TC Health Pasal 7",
+      "TC Health Pasal 9",
+      "TC Health Pasal 10",
+      "TC Health Pasal 11",
+      "TC Health Pasal 15",
+      "TC Health Pasal 16",
+      "TC Health Pasal 22",
+      "TC Health Pasal 27"
+    ]
+  },
+  "audit": {
+    "received_at": "2026-09-30T09:38:25+07:00",
+    "completed_at": "2026-09-30T09:39:19+07:00",
+    "processing_seconds": 54.1,
+    "model_reference": "ok-claim-health-0.1.0",
+    "input_digest": "sha256:b1990140981bda994c9729ece09571340527736797bc2dddf01f98872fb91e63"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-30T09:39:19+07:00",
+    "log_retained": "Dokumen dihapus dari sistem OneKlinik setelah diproses. JSON hasil disimpan sementara hanya sampai terkirim. Log tersimpan: processing_id, waktu, jumlah halaman, status."
+  },
+  "fraud_assessment": {
+    "source": "Deswa Fraud Detection Engine",
+    "engine_version": "contoh",
+    "assessed_at": "2026-09-30T09:40:19+07:00",
+    "result_a": [
+      {
+        "parameter_code": "area_klaim",
+        "label": "Area Klaim / Incident",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "kelas_pekerjaan",
+        "label": "Kelas Pekerjaan",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "red_hospital",
+        "label": "Red Hospitals",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "lama_rawat_inap",
+        "label": "Lama Rawat Inap",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "financial_background",
+        "label": "Financial Background",
+        "score": 2,
+        "category": "Moderate"
+      }
+    ],
+    "result_b": [
+      {
+        "parameter_code": "riwayat_perawatan_faskes",
+        "label": "Riwayat Perawatan Di Faskes",
+        "result": "No"
+      },
+      {
+        "parameter_code": "fraud_data_deswa",
+        "label": "Fraud Based on Data Deswa",
+        "result": "No"
+      }
+    ],
+    "recommendation": {
+      "investigate": false,
+      "reasons": [],
+      "text": "Klaim dapat diproses sesuai prosedur standar — tidak ada parameter Result A yang High ke atas maupun temuan pada Result B."
+    },
+    "note": "NILAI CONTOH untuk ilustrasi format. Pada implementasi, blok ini diisi oleh Fraud Detection Engine Deswa berdasarkan database Deswa."
+  }
+}

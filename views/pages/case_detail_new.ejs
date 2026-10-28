@@ -202,6 +202,21 @@
                                 </div>
                             </div>
 
+                            <div class="border-top pt-4 mb-4">
+                                <h5 class="fw-bold mb-3">Informasi Polis</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4"><small class="text-muted d-block">No. Polis</small><strong><%= caseItem.no_polis || '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Pemegang Polis</small><strong><%= caseItem.pemegang_polis || '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Tertanggung</small><strong><%= caseItem.tertanggung || '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Tanggal Issued Polis</small><strong><%= caseItem.tanggal_issued_polis ? new Date(caseItem.tanggal_issued_polis).toLocaleDateString('id-ID') : '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Jenis Klaim</small><strong><%= caseItem.jenis_claim || caseItem.case_type || '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">UP</small><strong><%= caseItem.up == null ? '-' : 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(caseItem.up)) %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Usia Polis</small><strong><%= caseItem.usia_polis || '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Pekerjaan Tertanggung</small><strong><%= caseItem.pekerjaan_tertanggung || '-' %></strong></div>
+                                    <div class="col-md-4"><small class="text-muted d-block">Alamat</small><strong><%= caseItem.alamat || '-' %></strong></div>
+                                </div>
+                            </div>
+
                             <% if (claimData && Object.keys(claimData).length) { %>
                             <div class="border-top pt-4 mb-4">
                                 <h5 class="fw-bold mb-3">Informasi Klaim</h5>
@@ -391,21 +406,21 @@
                                 <div class="card-body">
                                     <form method="POST" action="/case/<%= caseItem.id %>/upload-document" enctype="multipart/form-data">
                                         <div class="row">
-                                            <% [
-                                                ['beneficiary_document', 'Dokumen penerima manfaat'],
-                                                ['death_document', 'Dokumen kematian'],
-                                                ['identity_document', 'Dokumen identitas'],
-                                                ['medical_document', 'Dokumen medis/laporan rumah sakit'],
-                                                ['police_document', 'Laporan kepolisian'],
-                                                ['document', 'Dokumen pendukung lainnya']
-                                            ].forEach(([name, label]) => { %>
                                             <div class="col-md-6 mb-3">
-                                                <label for="upload_<%= name %>"><%= label %></label>
-                                                <input type="file" class="form-control" id="upload_<%= name %>" name="<%= name %>" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+                                                <label for="upload_document_type">Jenis Dokumen</label>
+                                                <select class="form-control" id="upload_document_type" name="document_type" required>
+                                                    <option value="">Pilih jenis dokumen</option>
+                                                    <% ['Data penerima manfaat', 'Dokumen kematian', 'Dokumen identitas', 'Dokumen medis', 'Laporan kepolisian', 'Dokumen pendukung'].forEach(type => { %>
+                                                    <option value="<%= type %>"><%= type %></option>
+                                                    <% }); %>
+                                                </select>
                                             </div>
-                                            <% }); %>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="upload_claim_document">Pilih Dokumen</label>
+                                                <input type="file" class="form-control" id="upload_claim_document" name="claim_document" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required>
+                                            </div>
                                         </div>
-                                        <small class="form-text text-muted d-block mb-3">PDF/JPG/PNG, maksimal 10 MB per file</small>
+                                        <small class="form-text text-muted d-block mb-3">Satu dokumen per pengiriman. Format PDF/JPG/PNG, maksimal 10 MB.</small>
                                         <button type="submit" class="btn btn-primary">
                                                 <i class="fas fa-upload me-2"></i>Upload Dokumen
                                             </button>

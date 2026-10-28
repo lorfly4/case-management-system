@@ -1,7 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { buildClaimDetails, buildPdfClaimSections, parseClaimDetails } = require('../lib/claim_details');
+const {
+  buildClaimDetails,
+  buildPdfClaimSections,
+  calculatePolicyAge,
+  parseClaimDetails,
+} = require('../lib/claim_details');
 
 test('buildClaimDetails totals hospital costs after every component is entered', () => {
   const details = buildClaimDetails({
@@ -59,6 +64,21 @@ test('buildClaimDetails aligns case type with the granular claim kind', () => {
 
   assert.equal(hospital.category, 'Klaim Hospital');
   assert.equal(nonHospital.category, 'Klaim Non Hospital');
+});
+
+test('buildClaimDetails maps outpatient claims to Hospital', () => {
+  const details = buildClaimDetails({
+    case_type: 'Klaim Non Hospital',
+    claim_kind: 'Klaim rawat jalan',
+  });
+
+  assert.equal(details.category, 'Klaim Hospital');
+});
+
+test('calculatePolicyAge computes a calendar duration and rejects reversed dates', () => {
+  assert.equal(calculatePolicyAge('2023-01-31', '2024-03-01'), '1 tahun 1 bulan 0 hari');
+  assert.equal(calculatePolicyAge('2024-03-01', '2023-01-31'), '');
+  assert.equal(calculatePolicyAge('2024-01-01', ''), '');
 });
 
 test('buildClaimDetails preserves mixed case type when a claim kind is selected', () => {

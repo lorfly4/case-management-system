@@ -29,6 +29,7 @@ const {
   buildClaimDetails,
   parseClaimDetails,
   buildPdfClaimSections,
+  calculatePolicyAge,
   CASE_TYPES,
 } = require("./lib/claim_details");
 const {
@@ -304,12 +305,29 @@ const safeJsonParse = (value) => {
 };
 
 const claimDocumentFields = [
-  { name: "beneficiary_document", type: "Data penerima manfaat" },
-  { name: "death_document", type: "Dokumen kematian" },
-  { name: "identity_document", type: "Dokumen identitas" },
-  { name: "medical_document", type: "Dokumen medis" },
-  { name: "police_document", type: "Laporan kepolisian" },
+  { type: "Data penerima manfaat", checklistValue: "beneficiary" },
+  { type: "Dokumen kematian", checklistValue: "death" },
+  { type: "Dokumen identitas", checklistValue: "identity" },
+  { type: "Dokumen medis", checklistValue: "medical" },
+  { type: "Laporan kepolisian", checklistValue: "police" },
 ];
+
+const validClaimDocumentTypes = [
+  ...claimDocumentFields.map(({ type }) => type),
+  "Dokumen pendukung",
+];
+
+const policyAgeForClaim = (body, caseType = body.case_type) => {
+  const isHospital = caseType === "Klaim Hospital";
+  const isDeathClaim = /meninggal/i.test(body.claim_kind || "") ||
+    (caseType !== "Klaim Hospital" && body.tanggal_meninggal);
+  const eventDate = isHospital
+    ? body.incident_date || body.admission_date
+    : isDeathClaim
+      ? body.tanggal_meninggal || body.incident_date
+      : body.incident_date || body.admission_date || body.diagnosis_date;
+  return calculatePolicyAge(body.tanggal_issued_polis, eventDate);
+};
 
 const persistDocuments = async (caseId, caseTitle, documents, userId) => {
   for (const { file, type } of documents) {
@@ -339,11 +357,44 @@ const persistDocuments = async (caseId, caseTitle, documents, userId) => {
   }
 };
 
-const persistClaimDocuments = (caseId, caseTitle, files, userId) => {
-  const documents = claimDocumentFields.flatMap(({ name, type }) =>
-    (files?.[name] || []).map((file) => ({ file, type })),
-  );
-  return persistDocuments(caseId, caseTitle, documents, userId);
+const synchronizeDocumentChecklist = (caseId) =>
+  new Promise((resolve, reject) => {
+    db.query("SELECT claim_details FROM cases WHERE id = ?", [caseId], (caseErr, cases) => {
+      if (caseErr) return reject(caseErr);
+      if (!cases.length) return reject(new Error("Case not found while synchronizing document checklist"));
+
+      db.query(
+        "SELECT document_type FROM case_documents WHERE case_id = ?",
+        [caseId],
+        (documentErr, documents) => {
+          if (documentErr) return reject(documentErr);
+          const checklist = [...new Set(documents.flatMap(({ document_type }) => {
+            const matchingField = claimDocumentFields.find((field) => field.type === document_type);
+            return matchingField ? [matchingField.checklistValue] : [];
+          }))];
+          const claimDetails = parseClaimDetails(cases[0].claim_details);
+          claimDetails.verification = {
+            ...claimDetails.verification,
+            document_checklist: checklist,
+          };
+          db.query(
+            "UPDATE cases SET claim_details = ? WHERE id = ?",
+            [JSON.stringify(claimDetails), caseId],
+            (updateErr) => (updateErr ? reject(updateErr) : resolve()),
+          );
+        },
+      );
+    });
+  });
+
+const persistClaimDocuments = async (caseId, caseTitle, file, type, userId) => {
+  const documents = file ? [{ file, type }] : [];
+  await persistDocuments(caseId, caseTitle, documents, userId);
+  await synchronizeDocumentChecklist(caseId);
+};
+
+const removeUploadedClaimFile = (req) => {
+  if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 };
 
 const safeNumber = (value, fallback = 0) => {
@@ -390,12 +441,12 @@ const formatDasarKetentuan = (value) => {
   if (typeof value === "string") {
     const trimmed = value.trim();
     if (!(trimmed.startsWith("[") || trimmed.startsWith("{"))) {
-      return value; // bukan JSON, biarkan apa adanya
+      return humanizeReportText(value);
     }
     try {
       rules = JSON.parse(trimmed);
     } catch (error) {
-      return value; // gagal parse, kembalikan teks asli
+      return humanizeReportText(value);
     }
   }
 
@@ -409,12 +460,13 @@ const formatDasarKetentuan = (value) => {
     if (!rule || typeof rule !== "object")
       return `${index + 1}. ${String(rule)}`;
 
-    const description =
-      rule.description || rule.rule_id || `Ketentuan ${index + 1}`;
+    const description = humanizeReportText(
+      rule.description || `Ketentuan ${index + 1}`,
+    );
     const verdictText = verdictToText(rule.verdict);
     const clauseRef =
       rule.source_clause && rule.source_clause.reference
-        ? rule.source_clause.reference
+        ? humanizeReportText(rule.source_clause.reference)
         : null;
 
     let line = `${index + 1}. ${description} — ${verdictText}`;
@@ -423,7 +475,9 @@ const formatDasarKetentuan = (value) => {
     }
 
     const evidenceNotes = Array.isArray(rule.evidence)
-      ? rule.evidence.filter((e) => e && e.note).map((e) => e.note)
+      ? rule.evidence
+          .filter((e) => e && e.note)
+          .map((e) => humanizeReportText(e.note))
       : [];
     if (evidenceNotes.length > 0) {
       line += `. Catatan: ${evidenceNotes.join("; ")}`;
@@ -496,7 +550,7 @@ const normalizeClaimAssessmentData = (caseData) => {
         ),
       },
       {
-        label: "Tanggal Issued Polis",
+        label: "Tanggal Terbit Polis",
         value: pick(
           polis.tanggal_issued_polis,
           caseData.tanggal_issued_polis,
@@ -504,7 +558,7 @@ const normalizeClaimAssessmentData = (caseData) => {
         ),
       },
       {
-        label: "Jenis Claim",
+        label: "Jenis Klaim",
         value: pick(
           polis.jenis_claim,
           caseData.jenis_claim,
@@ -512,7 +566,7 @@ const normalizeClaimAssessmentData = (caseData) => {
         ),
       },
       {
-        label: "UP",
+        label: "Uang Pertanggungan",
         value: formatMaybeCurrency(
           pick(polis.up, caseData.up, caseData.amount),
         ),
@@ -561,7 +615,7 @@ const normalizeClaimAssessmentData = (caseData) => {
     ],
     claim_assesment: [
       {
-        label: "Status Claim",
+        label: "Status Klaim",
         value: pick(
           assesment.status_claim,
           caseData.status_claim,
@@ -569,7 +623,7 @@ const normalizeClaimAssessmentData = (caseData) => {
         ),
       },
       {
-        label: "Hasil Assessment",
+        label: "Hasil Penilaian",
         value: pick(
           assesment.hasil_assesment,
           assesment.hasil_assessment,
@@ -935,7 +989,7 @@ const formatExtractedValue = (name, field) => {
  * Render JSON menjadi lampiran ringkas dan human-readable.
  * Yang ditampilkan adalah informasi substantif, bukan metadata teknis.
  */
-const drawJsonAsTable = (doc, dataObject, startX = 40) => {
+const drawJsonAsTechnicalTable = (doc, dataObject, startX = 40) => {
   const data = dataObject || {};
   const requestRef = getJsonField(data, "request_ref", {});
   const engine = getJsonField(data, "engine", {});
@@ -1533,6 +1587,442 @@ const drawJsonAsTable = (doc, dataObject, startX = 40) => {
   }
 };
 
+const humanizeReportText = (value) => {
+  if (value === null || value === undefined || value === "") return "-";
+
+  return String(value)
+    .replace(/Schedule of Benefits/gi, "daftar manfaat polis")
+    .replace(/T&C/gi, "ketentuan polis")
+    .replace(/Pre-Existing Condition/gi, "penyakit yang sudah ada sebelumnya")
+    .replace(/Human Review/gi, "pemeriksaan analis")
+    .replace(/\breview\b/gi, "pemeriksaan")
+    .replace(/\bassessment\b/gi, "penilaian")
+    .replace(/\bneeds_human_review\b/gi, "perlu pemeriksaan analis")
+    .replace(/\bnot_found\b/gi, "tidak ditemukan")
+    .replace(/\bneeds review\b/gi, "perlu pemeriksaan analis")
+    .replace(/\bapproved?\b/gi, "disetujui")
+    .replace(/\brejected?\b/gi, "ditolak")
+    .replace(/\bpending\b/gi, "menunggu pemeriksaan")
+    .replace(/\bKlaim Hospital\b/gi, "Klaim rawat inap")
+    .replace(/\bKlaim Non Hospital\b/gi, "Klaim selain rawat inap")
+    .replace(/\bKlaim Campuran\b/gi, "Klaim gabungan")
+    .replace(/\bin force\b/gi, "aktif")
+    .replace(/\bexclusion\b/gi, "pengecualian")
+    .replace(/\bdeductible\b/gi, "biaya sendiri")
+    .replace(/\bco-payment\b/gi, "biaya bersama")
+    .replace(/TC (Health|Life) Pasal/gi, "Pasal")
+    .replace(/Pasal\s+(\d+)\s*[–-]\s*(\d+)/g, "Pasal $1 sampai $2")
+    .replace(/\bResult [AB]\b/gi, "hasil pemeriksaan");
+};
+
+const reportClaimType = (data) => {
+  const type = String(getJsonField(data, "claim_type", "")).toLowerCase();
+  const labels = {
+    hospitalization: "Rawat Inap",
+    health: "Kesehatan",
+    death: "Meninggal Dunia",
+    life: "Jiwa",
+    critical_care: "Perawatan Kritis",
+    critical_illness: "Penyakit Kritis",
+    accident: "Kecelakaan",
+  };
+  return labels[type] || humanizeReportText(type.replace(/_/g, " "));
+};
+
+const formatReportField = (name, field) => {
+  if (!field) return "-";
+  const value = field.value;
+  if (value === null || value === undefined || value === "") {
+    return field.origin === "not_found" ? "Tidak ditemukan" : "-";
+  }
+
+  const lowerName = String(name).toLowerCase();
+  const sensitiveFields = [
+    "id_number_masked",
+    "account_number_masked",
+    "phone",
+  ];
+  if (field.raw_text && !sensitiveFields.includes(name)) {
+    return humanizeReportText(field.raw_text);
+  }
+
+  if (lowerName.includes("date") || lowerName.includes("tanggal")) {
+    return formatJsonDate(value);
+  }
+  if (
+    ["sum_assured", "payable", "billed", "amount", "invoice_total"].some((part) =>
+      lowerName.includes(part),
+    )
+  ) {
+    return formatJsonCurrency(value);
+  }
+  if (lowerName === "policy_age_months") return `${value} bulan`;
+  if (lowerName === "death_category") {
+    const categories = {
+      natural: "Wajar atau karena sakit",
+      accident: "Kecelakaan",
+      suicide: "Bunuh diri",
+      homicide: "Pembunuhan",
+    };
+    return categories[String(value).toLowerCase()] || humanizeReportText(value);
+  }
+  if (lowerName === "policy_status" && String(value).toLowerCase() === "in_force") {
+    return "Aktif";
+  }
+  return humanizeReportText(value);
+};
+
+const drawHumanReadableJsonReport = (doc, dataObject, startX = 40) => {
+  const data = dataObject || {};
+  const extracted = getJsonField(data, "extracted_data", {});
+  const policy = getJsonField(extracted, "policy_info", {});
+  const insured = getJsonField(extracted, "insured_info", {});
+  const claimant = getJsonField(extracted, "claimant_info", {});
+  const claim = getJsonField(extracted, "claim_info", {});
+  const hospitalization = getJsonField(claim, "hospitalization", {});
+  const death = getJsonField(claim, "death", {});
+  const assessment = getJsonField(data, "assessment", {});
+  const summary = getJsonField(data, "report_summary", {});
+  const policyEvaluation = getJsonField(data, "policy_evaluation", {});
+
+  const rowsFromFields = (source, fields) =>
+    fields
+      .map(([name, label]) => {
+        const field = getExtractedField(source, name);
+        return field
+          ? { label, value: formatReportField(name, field) }
+          : null;
+      })
+      .filter((row) => row && row.value !== "-");
+
+  const addSection = (title, rows) => {
+    const visibleRows = rows.filter(
+      (row) => row && row.value !== "-" && row.value !== "",
+    );
+    if (visibleRows.length) {
+      drawTableSection(doc, title, visibleRows, { startX });
+    }
+  };
+
+  const claimId = getJsonField(
+    getJsonField(data, "request_ref", {}),
+    "tpa_claim_id",
+    "-",
+  );
+  const receivedAt = getJsonField(
+    getJsonField(data, "request_ref", {}),
+    "received_at",
+    "-",
+  );
+  addSection("Identitas Pengajuan", [
+    { label: "Nomor klaim", value: claimId },
+    {
+      label: "Tanggal diterima",
+      value: receivedAt === "-" ? "-" : formatJsonDate(receivedAt),
+    },
+    {
+      label: "Jenis klaim",
+      value: reportClaimType(data),
+    },
+  ]);
+
+  addSection(
+    "Informasi Polis",
+    rowsFromFields(policy, [
+      ["policy_number", "Nomor polis"],
+      ["policyholder_name", "Pemegang polis"],
+      ["product_name", "Nama produk"],
+      ["policy_issue_date", "Tanggal terbit polis"],
+      ["policy_effective_date", "Tanggal mulai perlindungan"],
+      ["sum_assured", "Uang pertanggungan"],
+      ["policy_status", "Status polis"],
+      ["policy_age_months", "Lama polis berjalan"],
+    ]),
+  );
+
+  addSection(
+    "Informasi Tertanggung",
+    rowsFromFields(insured, [
+      ["insured_name", "Nama tertanggung"],
+      ["date_of_birth", "Tanggal lahir"],
+      ["gender", "Jenis kelamin"],
+      ["occupation", "Pekerjaan"],
+      ["address", "Alamat"],
+      ["id_number_masked", "Nomor identitas"],
+    ]),
+  );
+
+  addSection(
+    "Pengaju dan Penerima Manfaat",
+    rowsFromFields(claimant, [
+      ["claimant_name", "Nama pengaju"],
+      ["relationship_to_insured", "Hubungan dengan tertanggung"],
+      ["beneficiary_name", "Penerima manfaat"],
+      ["phone", "Nomor telepon"],
+      ["claim_submission_date", "Tanggal pengajuan"],
+      ["bank_name", "Nama bank"],
+      ["account_number_masked", "Nomor rekening"],
+    ]),
+  );
+
+  const claimRows = rowsFromFields(claim, [
+    ["event_date", "Tanggal kejadian"],
+    ["brief_chronology", "Kronologi"],
+  ]);
+  claimRows.push(
+    ...rowsFromFields(hospitalization, [
+      ["provider_name", "Rumah sakit"],
+      ["admission_date", "Tanggal masuk"],
+      ["discharge_date", "Tanggal keluar"],
+      ["diagnosis_text", "Diagnosis"],
+      ["invoice_total", "Jumlah tagihan"],
+    ]),
+    ...rowsFromFields(death, [
+      ["date_of_death", "Tanggal meninggal"],
+      ["cause_of_death", "Penyebab meninggal"],
+      ["place_of_death", "Tempat meninggal"],
+      ["death_category", "Kategori kejadian"],
+    ]),
+  );
+  addSection("Keterangan Kejadian", claimRows);
+
+  const documents = Array.isArray(data.documents) ? data.documents : [];
+  const documentLabels = {
+    claim_form: "Formulir klaim",
+    policy_document: "Dokumen polis",
+    death_certificate: "Surat keterangan kematian",
+    hospital_death_statement: "Surat keterangan rumah sakit",
+    id_document: "Dokumen identitas",
+    medical_resume: "Ringkasan medis",
+    invoice: "Rincian tagihan",
+    other: "Dokumen pendukung",
+  };
+  const documentIssueLabels = {
+    missing_signature: "Tanda tangan belum tercantum",
+    missing_stamp: "Stempel belum tercantum",
+    low_quality: "Kualitas dokumen perlu diperiksa",
+    unreadable: "Sebagian isi dokumen sulit dibaca",
+  };
+  addSection(
+    "Dokumen yang Diperiksa",
+    documents.map((document, index) => {
+      const type = String(getJsonField(document, "document_type", "other"));
+      const quality = getJsonField(document, "extraction_quality", {});
+      const issues = Array.isArray(quality.issues) ? quality.issues : [];
+      return {
+        label: `Dokumen ${index + 1}`,
+        value: [
+          documentLabels[type] ||
+            humanizeReportText(type.replace(/_/g, " ")),
+          ...issues.map(
+            (issue) =>
+              documentIssueLabels[issue] ||
+              humanizeReportText(String(issue).replace(/_/g, " ")),
+          ),
+        ].join(". "),
+      };
+    }),
+  );
+
+  const recommendationLabels = {
+    approve: "Direkomendasikan untuk disetujui",
+    reject: "Direkomendasikan untuk ditolak",
+    review: "Perlu pemeriksaan analis",
+    needs_human_review: "Perlu pemeriksaan analis",
+    pending: "Menunggu pemeriksaan",
+  };
+  const statusLabels = {
+    "needs review": "Perlu pemeriksaan analis",
+    diterima: "Direkomendasikan untuk disetujui",
+    ditolak: "Direkomendasikan untuk ditolak",
+  };
+  const rawStatus = String(getJsonField(summary, "status_label", "-"));
+  const rawRecommendation = String(
+    getJsonField(assessment, "recommendation", "-"),
+  ).toLowerCase();
+  addSection("Kesimpulan Pemeriksaan", [
+    {
+      label: "Status",
+      value:
+        statusLabels[rawStatus.toLowerCase()] ||
+        humanizeReportText(rawStatus),
+    },
+    {
+      label: "Rekomendasi",
+      value:
+        recommendationLabels[rawRecommendation] ||
+        humanizeReportText(rawRecommendation.replace(/_/g, " ")),
+    },
+    {
+      label: "Ringkasan",
+      value: humanizeReportText(getJsonField(summary, "hasil_assessment")),
+    },
+  ]);
+
+  const rules = Array.isArray(policyEvaluation.rules)
+    ? policyEvaluation.rules
+    : [];
+  const verdictLabels = {
+    pass: "Terpenuhi",
+    fail: "Tidak terpenuhi",
+    not_applicable: "Tidak berlaku",
+    indeterminate: "Belum dapat dipastikan",
+    pending: "Menunggu pemeriksaan",
+  };
+  addSection(
+    "Ketentuan yang Diperiksa",
+    rules.map((rule) => {
+      const clause = getJsonField(rule, "source_clause", {});
+      const notes = Array.isArray(rule.evidence)
+        ? rule.evidence.map((item) => item && item.note).filter(Boolean)
+        : [];
+      const verdict = String(getJsonField(rule, "verdict", "")).toLowerCase();
+      const reference = getJsonField(clause, "reference", "-");
+      return {
+        label: humanizeReportText(getJsonField(rule, "description")),
+        value: [
+          verdictLabels[verdict] || humanizeReportText(verdict),
+          reference === "-"
+            ? ""
+            : `Rujukan: ${humanizeReportText(reference)}`,
+          ...notes.map(humanizeReportText),
+        ]
+          .filter(Boolean)
+          .join(". "),
+      };
+    }),
+  );
+
+  const reasons = Array.isArray(assessment.reasons)
+    ? assessment.reasons
+    : [];
+  addSection(
+    "Catatan Pemeriksaan",
+    reasons.map((reason, index) => ({
+      label: `Catatan ${index + 1}`,
+      value: humanizeReportText(getJsonField(reason, "summary")),
+    })),
+  );
+  const missingItems = getJsonField(
+    getJsonField(assessment, "human_review", {}),
+    "missing_items",
+    [],
+  );
+  if (Array.isArray(missingItems) && missingItems.length) {
+    const missingLabels = {
+      policy_issue_date: "tanggal terbit polis",
+      sum_assured: "nilai uang pertanggungan",
+    };
+    addSection("Informasi yang Belum Tersedia", [
+      {
+        label: "Perlu dilengkapi",
+        value: missingItems
+          .map(
+            (item) =>
+              missingLabels[item] ||
+              humanizeReportText(String(item).replace(/_/g, " ")),
+          )
+          .join(", "),
+      },
+    ]);
+  }
+
+  const amount = getJsonField(assessment, "amount", {});
+  addSection("Perkiraan Nilai Manfaat", [
+    ...["billed", "sum_assured", "payable"]
+      .map((name) => {
+        const value = getJsonField(amount, name, null);
+        const labels = {
+          billed: "Jumlah tagihan",
+          sum_assured: "Uang pertanggungan",
+          payable: "Nilai yang direkomendasikan untuk dibayarkan",
+        };
+        return value === null
+          ? null
+          : { label: labels[name], value: formatJsonCurrency(value) };
+      })
+      .filter(Boolean),
+  ]);
+
+  const fraud = getJsonField(data, "fraud_assessment", {});
+  if (Object.keys(fraud).length) {
+    const parameterLabels = {
+      area_klaim: "Wilayah kejadian",
+      kelas_pekerjaan: "Kelompok pekerjaan",
+      red_hospital: "Riwayat rumah sakit",
+      lama_rawat_inap: "Lama rawat inap",
+      financial_background: "Kondisi keuangan",
+      riwayat_perawatan_faskes: "Riwayat perawatan",
+      fraud_data_deswa: "Kecocokan dengan catatan pemeriksaan",
+    };
+    const riskLabels = {
+      low: "Rendah",
+      moderate: "Sedang",
+      high: "Tinggi",
+      very_high: "Sangat tinggi",
+    };
+    const fraudRows = [];
+    for (const result of Array.isArray(fraud.result_a)
+      ? fraud.result_a
+      : []) {
+      const code = getJsonField(result, "parameter_code", "");
+      const name = getJsonField(result, "label", "");
+      const category = String(getJsonField(result, "category", "")).toLowerCase();
+      fraudRows.push({
+        label:
+          parameterLabels[code] ||
+          humanizeReportText(String(name).replace(/_/g, " ")),
+        value: riskLabels[category] || humanizeReportText(category),
+      });
+    }
+    for (const result of Array.isArray(fraud.result_b)
+      ? fraud.result_b
+      : []) {
+      const code = getJsonField(result, "parameter_code", "");
+      const name = getJsonField(result, "label", "");
+      const resultValue = String(getJsonField(result, "result", "")).toLowerCase();
+      fraudRows.push({
+        label:
+          parameterLabels[code] ||
+          humanizeReportText(String(name).replace(/_/g, " ")),
+        value:
+          resultValue === "yes"
+            ? "Ada temuan"
+            : resultValue === "no"
+              ? "Tidak ada temuan"
+              : humanizeReportText(resultValue),
+      });
+    }
+    const recommendation = getJsonField(fraud, "recommendation", {});
+    const investigate = getJsonField(recommendation, "investigate", null);
+    if (investigate !== null) {
+      fraudRows.push({
+        label: "Tindak lanjut",
+        value: investigate
+          ? "Disarankan untuk diperiksa lebih lanjut"
+          : "Tidak ada tanda yang mengharuskan pemeriksaan khusus berdasarkan informasi ini",
+      });
+    }
+    const fraudReasons = Array.isArray(recommendation.reasons)
+      ? recommendation.reasons.filter(Boolean)
+      : [];
+    if (fraudReasons.length) {
+      fraudRows.push({
+        label: "Alasan tindak lanjut",
+        value: fraudReasons.map(humanizeReportText).join("; "),
+      });
+    }
+    fraudRows.push({
+      label: "Catatan",
+      value:
+        /contoh|ilustrasi/i.test(String(getJsonField(fraud, "note", "")))
+          ? "Penilaian ini hanya contoh untuk menggambarkan cara membaca informasi dan bukan hasil pemeriksaan resmi."
+          : "Penilaian ini merupakan petunjuk awal, bukan bukti atau kesimpulan bahwa telah terjadi kecurangan.",
+    });
+    addSection("Indikasi yang Perlu Dicermati", fraudRows);
+  }
+};
+
 // --- AUTH ROUTES ---
 
 app.get("/login", (req, res) => {
@@ -1764,6 +2254,11 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
      * =========================================================
      */
     const reportData = normalizeClaimAssessmentData(caseData);
+    Object.values(reportData).forEach((rows) =>
+      rows.forEach((row) => {
+        row.value = humanizeReportText(row.value);
+      }),
+    );
 
     const doc = new PDFDocument({
       margin: 40,
@@ -1798,7 +2293,7 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
       .fillColor("#0F2A4A")
       .font("Helvetica-Bold")
       .fontSize(17)
-      .text("CLAIM ASSESSMENT", 40, 28, {
+      .text("LAPORAN PENILAIAN KLAIM", 40, 28, {
         width: 360,
       });
 
@@ -1856,7 +2351,7 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
 
     drawFixedAssessmentSection(
       doc,
-      "HASIL CLAIM ASSESSMENT",
+      "HASIL PENILAIAN KLAIM",
       reportData.claim_assesment,
       {
         startX: 40,
@@ -1900,7 +2395,7 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
       .font("Helvetica-Oblique")
       .fontSize(7.5)
       .text(
-        "Catatan: rincian data sumber dan hasil evaluasi JSON disajikan mulai halaman berikutnya.",
+        "Catatan: rincian informasi kasus dan dasar penilaiannya disajikan pada halaman berikutnya.",
         50,
         noteY + 9,
         {
@@ -1913,7 +2408,7 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
 
     // =========================================================
     // =========================================================
-    // JSON 1
+    // Informasi kasus pertama
     // =========================================================
     // =========================================================
 
@@ -1926,24 +2421,26 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
         .fillColor("#0F2A4A")
         .font("Helvetica-Bold")
         .fontSize(14)
-        .text("RINGKASAN DATA JSON 1", 40, 40, { width: 515 });
+        .text(`LAPORAN KLAIM ${reportClaimType(json1).toUpperCase()}`, 40, 40, {
+          width: 515,
+        });
 
       doc
         .fillColor("#64748B")
         .font("Helvetica")
         .fontSize(8.5)
-        .text("Informasi yang berasal dari JSON pertama.", 40, 62, {
+        .text("Ringkasan kejadian, ketentuan, dan hasil pemeriksaan.", 40, 62, {
           width: 515,
         });
 
       doc.y = 85;
 
-      drawJsonAsTable(doc, json1, 40);
+      drawHumanReadableJsonReport(doc, json1, 40);
     }
 
     // =========================================================
     // =========================================================
-    // JSON 2
+    // Informasi kasus kedua
     // =========================================================
     // =========================================================
 
@@ -1956,19 +2453,21 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
         .fillColor("#0F2A4A")
         .font("Helvetica-Bold")
         .fontSize(14)
-        .text("RINGKASAN DATA JSON 2", 40, 40, { width: 515 });
+        .text(`LAPORAN KLAIM ${reportClaimType(json2).toUpperCase()}`, 40, 40, {
+          width: 515,
+        });
 
       doc
         .fillColor("#64748B")
         .font("Helvetica")
         .fontSize(8.5)
-        .text("Informasi yang berasal dari JSON kedua.", 40, 62, {
+        .text("Ringkasan kejadian, ketentuan, dan hasil pemeriksaan.", 40, 62, {
           width: 515,
         });
 
       doc.y = 85;
 
-      drawJsonAsTable(doc, json2, 40);
+      drawHumanReadableJsonReport(doc, json2, 40);
     }
 
     // =========================================================
@@ -1978,7 +2477,7 @@ app.get("/case/:id/pdf", checkAuth, (req, res) => {
     // Tidak menggunakan footer,
     // nomor halaman, atau page break manual tambahan.
     // Page break yang ada hanya untuk memisahkan
-    // Claim Assessment, JSON 1, dan JSON 2.
+    // Ringkasan klaim dan rincian setiap informasi kasus.
 
     doc.end();
   });
@@ -2054,7 +2553,7 @@ const requireCaseCreator = (req, res, next) => {
 };
 
 const receiveClaimDocuments = (req, res, next) =>
-  caseDocumentUpload.fields(claimDocumentFields.map(({ name }) => ({ name, maxCount: 1 })))(req, res, next);
+  caseDocumentUpload.single("claim_document")(req, res, next);
 
 app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req, res) => {
   const {
@@ -2067,7 +2566,6 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
     tanggal_issued_polis,
     jenis_claim,
     up,
-    usia_polis,
     pekerjaan_tertanggung,
     alamat,
     tanggal_meninggal,
@@ -2080,8 +2578,12 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
     dasar_ketentuan,
   } = req.body;
   const claimData = buildClaimDetails(req.body);
+  if (req.file && !validClaimDocumentTypes.includes(req.body.document_type)) {
+    removeUploadedClaimFile(req);
+    return res.status(400).send("Pilih jenis dokumen yang valid.");
+  }
   if (!CASE_TYPES.includes(req.body.case_type)) {
-    Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+    removeUploadedClaimFile(req);
     return res.status(400).render("pages/case_form_new", {
       message: "Pilih Case Type Klaim Hospital, Klaim Non Hospital, atau Klaim Campuran.",
       caseItem: null,
@@ -2106,7 +2608,7 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
       tanggal_issued_polis: tanggal_issued_polis || null,
       jenis_claim: claimData.category,
       up: up || null,
-      usia_polis: usia_polis || null,
+      usia_polis: policyAgeForClaim(req.body, claimData.category) || null,
       pekerjaan_tertanggung: pekerjaan_tertanggung || null,
       alamat: alamat || null,
       tanggal_meninggal: tanggal_meninggal || null,
@@ -2122,7 +2624,7 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
     },
     (err, result) => {
       if (err) {
-        Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+        removeUploadedClaimFile(req);
         return res.render("pages/case_form_new", {
           message: "Error creating case: " + err.message,
           caseItem: null,
@@ -2132,7 +2634,13 @@ app.post("/case/new", checkAuth, requireCaseCreator, receiveClaimDocuments, (req
           role: req.session.role,
         });
       }
-      persistClaimDocuments(result.insertId, title, req.files, req.session.user_id)
+      persistClaimDocuments(
+        result.insertId,
+        title,
+        req.file,
+        req.body.document_type,
+        req.session.user_id,
+      )
         .then(() => res.redirect(`/case/${result.insertId}`))
         .catch((documentErr) =>
           res.status(500).send("Case created, but a document could not be saved: " + documentErr.message),
@@ -2175,7 +2683,6 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
     tanggal_issued_polis,
     jenis_claim,
     up,
-    usia_polis,
     pekerjaan_tertanggung,
     alamat,
     tanggal_meninggal,
@@ -2188,8 +2695,12 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
     dasar_ketentuan,
   } = req.body;
   const claimData = buildClaimDetails(req.body);
+  if (req.file && !validClaimDocumentTypes.includes(req.body.document_type)) {
+    removeUploadedClaimFile(req);
+    return res.status(400).send("Pilih jenis dokumen yang valid.");
+  }
   if (!CASE_TYPES.includes(req.body.case_type)) {
-    Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+    removeUploadedClaimFile(req);
     return res.status(400).send("Pilih Case Type Klaim Hospital, Klaim Non Hospital, atau Klaim Campuran.");
   }
 
@@ -2212,7 +2723,7 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
       tanggal_issued_polis || null,
       claimData.category,
       up || null,
-      usia_polis || null,
+      policyAgeForClaim(req.body, claimData.category) || null,
       pekerjaan_tertanggung || null,
       alamat || null,
       tanggal_meninggal || null,
@@ -2228,10 +2739,16 @@ app.post("/case/:id/edit", checkAuth, requireCaseCreator, receiveClaimDocuments,
     ],
     (err, result) => {
       if (err) {
-        Object.values(req.files || {}).flat().forEach((file) => fs.unlinkSync(file.path));
+        removeUploadedClaimFile(req);
         return res.status(500).send("Error updating case: " + err.message);
       }
-      persistClaimDocuments(req.params.id, title, req.files, req.session.user_id)
+      persistClaimDocuments(
+        req.params.id,
+        title,
+        req.file,
+        req.body.document_type,
+        req.session.user_id,
+      )
         .then(() => res.redirect(`/case/${req.params.id}`))
         .catch((documentErr) =>
           res.status(500).send("Case updated, but a document could not be saved: " + documentErr.message),
@@ -2522,7 +3039,7 @@ const caseDocumentStorage = multer.diskStorage({
 });
 
 const caseDocumentUpload = multer({
-  limits: { fileSize: 10 * 1024 * 1024, files: 6 },
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   storage: caseDocumentStorage,
   fileFilter: (req, file, cb) => {
     const isAllowedMime = ["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype);
@@ -2717,35 +3234,32 @@ app.post("/case/:id/upload-document", checkAuth, (req, res) => {
     return res.status(403).send("Unauthorized Access");
   }
 
-  const documentFields = [
-    { name: "document", maxCount: 1 },
-    ...claimDocumentFields.map(({ name }) => ({ name, maxCount: 1 })),
-  ];
-  caseDocumentUpload.fields(documentFields)(req, res, (err) => {
+  caseDocumentUpload.single("claim_document")(req, res, (err) => {
     if (err) {
       return res.status(400).send("Error uploading document: " + err.message);
     }
 
-    const files = req.files || {};
-    const legacyDocuments = (files.document || []).map((file) => ({
-      file,
-      type: "Dokumen pendukung",
-    }));
-    const typedDocuments = claimDocumentFields.flatMap(({ name, type }) =>
-      (files[name] || []).map((file) => ({ file, type })),
-    );
-    const documents = [...legacyDocuments, ...typedDocuments];
-    if (documents.length === 0) {
+    if (!req.file) {
       return res.status(400).send("Pilih setidaknya satu dokumen");
+    }
+    if (!validClaimDocumentTypes.includes(req.body.document_type)) {
+      removeUploadedClaimFile(req);
+      return res.status(400).send("Pilih jenis dokumen yang valid.");
     }
 
     db.query("SELECT title FROM cases WHERE id = ?", [req.params.id], (caseErr, cases) => {
       if (caseErr || cases.length === 0) {
-        documents.forEach(({ file }) => fs.unlinkSync(file.path));
+        removeUploadedClaimFile(req);
         return res.status(caseErr ? 500 : 404).send(caseErr ? caseErr.message : "Case not found");
       }
 
-      persistDocuments(req.params.id, cases[0].title, documents, req.session.user_id)
+      persistClaimDocuments(
+        req.params.id,
+        cases[0].title,
+        req.file,
+        req.body.document_type,
+        req.session.user_id,
+      )
         .then(() => res.redirect(`/case/${req.params.id}`))
         .catch((uploadErr) => {
           res.status(500).send("Failed to save document to shared folder: " + uploadErr.message);

@@ -1,0 +1,552 @@
+{
+  "schema_version": "0.4",
+  "processing_id": "OK-20260930-000011",
+  "request_ref": {
+    "tpa_claim_id": "CLM-DEMO-0003",
+    "received_at": "2026-09-30T09:38:05+07:00"
+  },
+  "line_of_business": "life",
+  "claim_type": "death",
+  "claim_category": "non_kesehatan",
+  "claim_types": [
+    "death"
+  ],
+  "engine": {
+    "provider": "OneKlinik",
+    "engine_version": "0.1.0",
+    "ruleset_version": "TC-LIFE-DESWA-v1.0"
+  },
+  "documents": [
+    {
+      "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+      "document_type": "claim_form",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.95,
+        "legible": true,
+        "issues": [
+          "missing_signature"
+        ]
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+      "document_type": "policy_document",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.97,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0003.pdf#hal-3-3",
+      "document_type": "death_certificate",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.97,
+        "legible": true,
+        "issues": []
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0003.pdf#hal-4-4",
+      "document_type": "hospital_death_statement",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.97,
+        "legible": true,
+        "issues": [
+          "missing_signature",
+          "missing_stamp"
+        ]
+      }
+    },
+    {
+      "document_id": "CLM-DEMO-0003.pdf#hal-5-5",
+      "document_type": "id_document",
+      "pages": 1,
+      "extraction_quality": {
+        "score": 0.97,
+        "legible": true,
+        "issues": []
+      }
+    }
+  ],
+  "extracted_data": {
+    "policy_info": {
+      "policy_number": {
+        "value": "POL-TL-2020-006012",
+        "origin": "extracted",
+        "confidence": 0.98,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "policyholder_name": {
+        "value": "Maya Putri",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+          "page": 2
+        }
+      },
+      "product_name": {
+        "value": "Proteksi Jiwa Berjangka",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+          "page": 2
+        }
+      },
+      "policy_issue_date": {
+        "value": "2020-05-10",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+          "page": 2
+        }
+      },
+      "policy_effective_date": {
+        "value": "2020-05-10",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+          "page": 2
+        }
+      },
+      "sum_assured": {
+        "value": 400000000,
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+          "page": 2
+        }
+      },
+      "policy_status": {
+        "value": "in_force",
+        "origin": "extracted",
+        "raw_text": "Aktif (in force)",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-2-2",
+          "page": 2
+        }
+      },
+      "policy_age_months": {
+        "value": 75,
+        "origin": "derived",
+        "note": "Dari 2020-05-10 sampai tanggal kejadian 2026-08-10"
+      }
+    },
+    "insured_info": {
+      "insured_name": {
+        "value": "Maya Putri",
+        "origin": "extracted",
+        "confidence": 0.98,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "date_of_birth": {
+        "value": "1995-06-06",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "gender": {
+        "value": "P",
+        "origin": "extracted",
+        "raw_text": "Perempuan",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "occupation": {
+        "value": "Karyawan Swasta",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "address": {
+        "value": "Jl. Cempaka No. 1, Jakarta Pusat",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "id_number_masked": {
+        "value": "************0006",
+        "origin": "extracted",
+        "raw_text": "3171060606950006",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      }
+    },
+    "claimant_info": {
+      "claimant_name": {
+        "value": "Putra Wijaya",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "relationship_to_insured": {
+        "value": "Suami",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "phone": {
+        "value": "0813****4444",
+        "origin": "extracted",
+        "raw_text": "081333334444",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "claim_submission_date": {
+        "value": "2026-08-18",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "beneficiary_name": {
+        "value": "Putra Wijaya",
+        "origin": "extracted",
+        "confidence": 0.97,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "bank_name": {
+        "value": "Bank Contoh Nusantara",
+        "origin": "extracted",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "account_number_masked": {
+        "value": "******7890",
+        "origin": "extracted",
+        "raw_text": "1234567890",
+        "confidence": 0.95,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      }
+    },
+    "claim_info": {
+      "event_date": {
+        "value": "2026-08-10",
+        "origin": "extracted"
+      },
+      "brief_chronology": {
+        "value": "Tertanggung Maya Putri dirawat inap di RS Cempaka Jakarta sejak 2026-08-06 karena Demam Berdarah Dengue, mengalami Dengue Shock Syndrome (DBD Grade III), dan meninggal dunia pada 2026-08-10. Klaim diajukan oleh suami, Putra Wijaya, sebagai penerima manfaat.",
+        "origin": "extracted",
+        "confidence": 0.9,
+        "source": {
+          "document_id": "CLM-DEMO-0003.pdf#hal-1-1",
+          "page": 1
+        }
+      },
+      "death": {
+        "date_of_death": {
+          "value": "2026-08-10",
+          "origin": "extracted"
+        },
+        "cause_of_death": {
+          "value": "Sakit - Demam Berdarah (Dengue Shock Syndrome)",
+          "origin": "extracted"
+        },
+        "place_of_death": {
+          "value": "RS Cempaka, Jakarta",
+          "origin": "extracted"
+        },
+        "death_category": {
+          "value": "natural",
+          "origin": "derived",
+          "note": "Dari penyebab kematian: Sakit - Demam Berdarah (Dengue Shock Syndrome)"
+        },
+        "death_certificate_number": {
+          "value": null,
+          "origin": "not_found"
+        }
+      }
+    }
+  },
+  "policy_evaluation": {
+    "benefit_code": "DB-001",
+    "rules": [
+      {
+        "rule_id": "EV-001",
+        "description": "Tanggal kejadian (tanggal meninggal) dapat ditentukan.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 5"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "CV-001",
+        "description": "Tanggal kejadian berada dalam masa pertanggungan.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 3"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "ST-001",
+        "description": "Polis berstatus in force pada tanggal kejadian.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 4"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "BN-001",
+        "description": "Manfaat meninggal dunia berlaku untuk jenis kematian ini.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 18"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "WP-001",
+        "description": "Masa tunggu telah terlewati pada tanggal kejadian.",
+        "verdict": "not_applicable",
+        "source_clause": {
+          "reference": "TC Life Pasal 13"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "EX-001",
+        "description": "Penyebab kematian tidak memicu exclusion (termasuk suicide exclusion, Pasal 19–20).",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 19"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "BEN-001",
+        "description": "Pengaju/penerima manfaat sah dan tidak konflik.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 7"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "DOC-001",
+        "description": "Dokumen klaim kematian material lengkap.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 22"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "CLM-001",
+        "description": "Nilai manfaat dihitung dari Uang Pertanggungan yang tercantum di polis (Pasal 6).",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 30"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      },
+      {
+        "rule_id": "HR-001",
+        "description": "Tidak ada ambiguitas/konflik yang mewajibkan Human Review.",
+        "verdict": "pass",
+        "source_clause": {
+          "reference": "TC Life Pasal 24"
+        },
+        "evaluated_at": "2026-09-30T09:38:25+07:00",
+        "benefit_code": "DB-001"
+      }
+    ]
+  },
+  "assessment": {
+    "recommendation": "approve",
+    "confidence": 0.95,
+    "reasons": [
+      {
+        "rule_id": "EV-001",
+        "summary": "Tanggal meninggal 2026-08-10."
+      },
+      {
+        "rule_id": "CV-001",
+        "summary": "Meninggal 2026-08-10 dalam masa pertanggungan sejak 2020-05-10 s.d. 2040-05-10."
+      },
+      {
+        "rule_id": "ST-001",
+        "summary": "Polis tercantum aktif / in force."
+      },
+      {
+        "rule_id": "BN-001",
+        "summary": "Kematian karena sebab alamiah dijamin bila polis aktif dan tidak ada exclusion (Pasal 18)."
+      },
+      {
+        "rule_id": "EX-001",
+        "summary": "Penyebab \"Sakit - Demam Berdarah (Dengue Shock Syndrome)\" tidak memicu exclusion yang tercantum."
+      },
+      {
+        "rule_id": "BEN-001",
+        "summary": "Pengaju Putra Wijaya adalah penerima manfaat tercantum."
+      },
+      {
+        "rule_id": "DOC-001",
+        "summary": "Dokumen yang relevan ditemukan."
+      },
+      {
+        "rule_id": "CLM-001",
+        "summary": "Manfaat meninggal = Uang Pertanggungan tercantum Rp400.000.000."
+      },
+      {
+        "rule_id": "WP-001",
+        "summary": "Tidak ada ketentuan mengenai masa tunggu dalam T&C; tidak diterapkan."
+      }
+    ],
+    "human_review": {
+      "required": false
+    },
+    "amount": {
+      "currency": "IDR",
+      "sum_assured": 400000000,
+      "payable": 400000000,
+      "calculation_note": "Recommended payable = Uang Pertanggungan yang tercantum di polis (Pasal 6, 30)."
+    }
+  },
+  "report_summary": {
+    "status_label": "Diterima",
+    "hasil_assessment": "Maya Putri meninggal pada 2026-08-10 karena Sakit - Demam Berdarah (Dengue Shock Syndrome). Syarat polis terpenuhi, manfaat meninggal Rp400.000.000.",
+    "dasar_ketentuan": [
+      "TC Life Pasal 3",
+      "TC Life Pasal 4",
+      "TC Life Pasal 5",
+      "TC Life Pasal 7",
+      "TC Life Pasal 13",
+      "TC Life Pasal 18",
+      "TC Life Pasal 19",
+      "TC Life Pasal 22",
+      "TC Life Pasal 24",
+      "TC Life Pasal 30"
+    ]
+  },
+  "audit": {
+    "received_at": "2026-09-30T09:38:05+07:00",
+    "completed_at": "2026-09-30T09:38:25+07:00",
+    "processing_seconds": 19.5,
+    "model_reference": "ok-claim-life-0.1.0",
+    "input_digest": "sha256:9d72134758bfa2c1c5fa8f35ade92276d35b039a9c459e9bb2b27688fa928f68"
+  },
+  "retention": {
+    "policy": "zero_retention",
+    "content_deleted": true,
+    "deleted_at": "2026-09-30T09:38:25+07:00",
+    "log_retained": "Dokumen dihapus dari sistem OneKlinik setelah diproses. JSON hasil disimpan sementara hanya sampai terkirim. Log tersimpan: processing_id, waktu, jumlah halaman, status."
+  },
+  "fraud_assessment": {
+    "source": "Deswa Fraud Detection Engine",
+    "engine_version": "contoh",
+    "assessed_at": "2026-09-30T09:39:25+07:00",
+    "result_a": [
+      {
+        "parameter_code": "area_klaim",
+        "label": "Area Klaim / Incident",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "kelas_pekerjaan",
+        "label": "Kelas Pekerjaan",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "red_hospital",
+        "label": "Red Hospitals",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "lama_rawat_inap",
+        "label": "Lama Rawat Inap",
+        "score": 1,
+        "category": "Low"
+      },
+      {
+        "parameter_code": "financial_background",
+        "label": "Financial Background",
+        "score": 2,
+        "category": "Moderate"
+      }
+    ],
+    "result_b": [
+      {
+        "parameter_code": "riwayat_perawatan_faskes",
+        "label": "Riwayat Perawatan Di Faskes",
+        "result": "No"
+      },
+      {
+        "parameter_code": "fraud_data_deswa",
+        "label": "Fraud Based on Data Deswa",
+        "result": "No"
+      }
+    ],
+    "recommendation": {
+      "investigate": false,
+      "reasons": [],
+      "text": "Klaim dapat diproses sesuai prosedur standar — tidak ada parameter Result A yang High ke atas maupun temuan pada Result B."
+    },
+    "note": "NILAI CONTOH untuk ilustrasi format. Pada implementasi, blok ini diisi oleh Fraud Detection Engine Deswa berdasarkan database Deswa."
+  }
+}
