@@ -3114,6 +3114,10 @@ const parseImportRows = (filePath) => {
 
 // --- CSV / EXCEL IMPORT ROUTE ---
 
+app.get("/sample_cases.csv", (req, res) => {
+  res.download(path.join(__dirname, "sample_cases.csv"), "sample_cases.csv");
+});
+
 app.get("/import-cases", checkAuth, (req, res) => {
   if (!canImportCases(req.session.role)) {
     return res.status(403).send("Unauthorized Access");
